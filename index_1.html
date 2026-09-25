@@ -1,0 +1,986 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SIV de Bolso</title>
+<meta name="description" content="Simulador de incidentes de parapente para treinar reações: fechamentos, estol, parachutal, negativa, espiral, turbulência, rotor, vento forte e reserva.">
+<meta name="theme-color" content="#0C1217">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SIV de Bolso">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+img{max-width:100%}
+</style>
+</head>
+<body>
+<style>
+:root{
+  color-scheme:dark;
+  --ink:#0C1217;--panel:#141D25;--panel2:#1A2530;--line:#283746;--text:#E5ECF1;--muted:#8A9CAB;
+  --accent:#FF7A1A;--accent-ink:#1E0E00;--ok:#43CF7E;--warn:#F2BD45;--bad:#FF5A55;
+  --fd:"Barlow Condensed","Arial Narrow","Roboto Condensed",system-ui,sans-serif;
+  --fb:"Barlow",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{background:var(--ink);color:var(--text);font-family:var(--fb);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+kbd{font-family:var(--fd);font-size:11px;letter-spacing:.04em;padding:0 5px;border:1px solid currentColor;border-radius:4px;opacity:.7;white-space:nowrap}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:28px 64px}
+header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:18px}
+.eyebrow{font-family:var(--fd);font-weight:600;letter-spacing:.18em;text-transform:uppercase;font-size:13px;color:var(--accent)}
+.brand h1{font-family:var(--fd);font-weight:700;font-size:clamp(40px,7vw,64px);line-height:.92;margin:4px 0 0;text-transform:uppercase;letter-spacing:.005em}
+.brand h1 span{color:var(--accent)}
+.brand p{margin:8px 0 0;color:var(--muted);max-width:58ch}
+.seg{display:inline-flex;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{background:none;border:0;border-radius:7px;padding:7px 14px;font-family:var(--fd);font-weight:600;font-size:16px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.seg button[aria-checked="true"]{background:var(--accent);color:var(--accent-ink)}
+.segwrap{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.segwrap small{color:var(--muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-family:var(--fd)}
+.notice{margin:22px 0 0;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;color:#C9D4DC;font-size:14px;max-width:none}
+.notice b{color:var(--warn);font-family:var(--fd);letter-spacing:.1em;text-transform:uppercase;font-size:13px;margin-right:6px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);margin:26px 0 6px;overflow-x:auto}
+.tab{background:none;border:0;padding:10px 14px;font-family:var(--fd);font-size:18px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.modeDesc{color:var(--muted);margin:14px 0 0;max-width:75ch}
+.cat h2{font-family:var(--fd);text-transform:uppercase;font-size:14px;font-weight:600;letter-spacing:.16em;color:var(--muted);margin:26px 0 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 14px 12px;display:flex;flex-direction:column;gap:8px}
+.card h3{font-family:var(--fd);font-size:23px;font-weight:600;margin:0;line-height:1.08;text-wrap:balance}
+.card p{margin:0;color:#B5C2CC;font-size:14px;flex:1}
+.card .row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:12px;padding:1px 8px;border-radius:99px;background:var(--panel2);color:var(--muted);font-variant-numeric:tabular-nums;border:1px solid var(--line)}
+.chip.best{color:var(--ok);border-color:#2D5A40}
+.chip.low{color:var(--bad);border-color:#5E2B2B}
+.btn{background:var(--accent);color:var(--accent-ink);border:0;border-radius:8px;padding:8px 16px;font-family:var(--fd);font-weight:700;font-size:17px;letter-spacing:.06em;text-transform:uppercase}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+.btn:hover{filter:brightness(1.08)}
+.help{margin-top:30px;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.help .card h3{font-size:19px}
+.help table{border-collapse:collapse;width:100%;font-size:14px}
+.help td{padding:4px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.help td:first-child{width:42%;color:var(--muted)}
+.proc .card ul{margin:0;padding-left:18px;font-size:14px;color:#C3CED6}
+.proc .card h4{margin:6px 0 2px;font-family:var(--fd);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.proc .card h4.a{color:var(--ok)}.proc .card h4.e{color:var(--bad)}
+.qbox{max-width:720px;margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.qbox .meta{display:flex;justify-content:space-between;color:var(--muted);font-family:var(--fd);letter-spacing:.1em;text-transform:uppercase;font-size:13px}
+.qbox .sit{font-size:18px;margin:10px 0 14px;line-height:1.45}
+.tbar{height:4px;background:var(--panel2);border-radius:4px;overflow:hidden;margin-top:8px}
+.tbar i{display:block;height:100%;width:100%;background:var(--warn);transition:width 15s linear}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px}
+.opt:hover:not([disabled]){border-color:var(--accent)}
+.opt.right{border-color:var(--ok);background:#15301F}
+.opt.wrong{border-color:var(--bad);background:#351A1A}
+.opt[disabled]{cursor:default}
+.expl{margin-top:14px;padding:12px;border-radius:10px;background:#101820;border:1px solid var(--line);font-size:14px;color:#C9D4DC}
+.expl b{font-family:var(--fd);letter-spacing:.08em;text-transform:uppercase}
+.hist{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.hist th{text-align:left;font-family:var(--fd);font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-size:13px;padding:8px 6px;border-bottom:1px solid var(--line)}
+.hist td{padding:8px 6px;border-bottom:1px solid var(--line)}
+.tscroll{overflow-x:auto;margin-top:16px}
+.sc{font-family:var(--fd);font-weight:700;font-size:18px}
+.good{color:var(--ok)}.mid{color:var(--warn)}.badc{color:var(--bad)}
+
+/* ---------- simulator ---------- */
+#sim{position:fixed;inset:0;z-index:50;background:#000;touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden;font-family:var(--fb)}
+#cv{position:absolute;inset:0;width:100%;height:100%;display:block}
+.inst{position:absolute;left:calc(10px + env(safe-area-inset-left,0px));top:calc(10px + env(safe-area-inset-top,0px));background:rgba(8,13,18,.74);border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:6px 12px;display:grid;grid-template-columns:auto auto;gap:0 14px;font-family:var(--fd);min-width:150px}
+.inst .k{font-size:11px;letter-spacing:.14em;color:#9FB0BE;text-transform:uppercase;align-self:center}
+.inst .v{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;line-height:1.15;color:#fff}
+.inst .v small{font-size:12px;font-weight:500;color:#9FB0BE;margin-left:3px}
+.inst .v.up{color:#5BE39A}.inst .v.dn{color:#FF6A63}
+.inst .v.sm{font-size:16px}
+.topr{position:absolute;right:calc(10px + env(safe-area-inset-right,0px));top:calc(10px + env(safe-area-inset-top,0px));display:flex;flex-direction:column;align-items:flex-end;gap:6px;max-width:44vw}
+.sname{font-family:var(--fd);font-size:15px;letter-spacing:.06em;text-transform:uppercase;background:rgba(8,13,18,.74);padding:3px 10px;border-radius:8px;color:#DCE5EB;text-align:right}
+.tbtns{display:flex;gap:6px;align-items:center}
+.tm{font-family:var(--fd);font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;background:rgba(8,13,18,.74);padding:2px 10px;border-radius:8px}
+.ib{background:rgba(8,13,18,.74);border:1px solid rgba(255,255,255,.18);border-radius:8px;padding:3px 10px;font-size:13px;font-weight:600;color:#fff}
+#hint{position:absolute;right:calc(clamp(62px,14vw,120px) + 12px + env(safe-area-inset-right,0px));top:calc(96px + env(safe-area-inset-top,0px));width:min(300px,36vw);background:rgba(8,13,18,.8);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.4;color:#DCE5EB}
+#hint h5{margin:0 0 6px;font-family:var(--fd);font-size:17px;letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
+#hint.alarm h5{color:#FF6A63}
+#hint ol{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+#hint li{color:#8C9DAA}
+#hint li.now{color:#fff;font-weight:600}
+#hint li.done{color:#5BE39A}
+#hint kbd{opacity:.9}
+#banner{position:absolute;left:50%;top:26%;transform:translate(-50%,-50%) scale(.96);font-family:var(--fd);font-weight:700;font-size:clamp(22px,4.4vw,44px);letter-spacing:.06em;text-transform:uppercase;color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.7);opacity:0;transition:opacity .2s,transform .2s;text-align:center;pointer-events:none;max-width:80vw;line-height:1.05}
+#banner.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+#banner.alert{color:#FFD7B5}
+#banner.sm{font-size:clamp(16px,2.6vw,24px)}
+.zone{position:absolute;top:max(32%,150px);bottom:16%;width:clamp(62px,14vw,120px);touch-action:none;display:flex;flex-direction:column;align-items:center;gap:6px}
+.zl{left:calc(4px + env(safe-area-inset-left,0px))}.zr{right:calc(4px + env(safe-area-inset-right,0px))}
+.gauge{position:relative;flex:1;width:44%;min-width:28px;border:1px solid rgba(255,255,255,.4);border-radius:10px;overflow:hidden;background:rgba(0,0,0,.28)}
+.gauge i{position:absolute;left:0;right:0;top:0;height:12%;background:linear-gradient(180deg,rgba(255,122,26,.25),rgba(255,122,26,.9));border-bottom:3px solid #FFB27A}
+.gauge b{position:absolute;left:-2px;right:-2px;height:0;border-top:2px dashed #FF5A55;display:none}
+.gauge em{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%) rotate(-90deg);font-style:normal;font-family:var(--fd);font-weight:700;font-size:12px;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap;color:#fff;background:#C0392B;padding:1px 6px;border-radius:4px;display:none}
+.zone.pl .gauge{border-color:#FF5A55;animation:pl .18s infinite alternate}
+.zone.pl.showpl .gauge em{display:block}
+@keyframes pl{to{transform:translateX(2px)}}
+.zlab{font-family:var(--fd);font-weight:600;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:#fff;background:rgba(8,13,18,.7);border-radius:6px;padding:1px 6px;text-align:center;white-space:nowrap}
+.pads{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;justify-content:center;gap:5px;width:min(700px,calc(100% - 2 * clamp(62px,14vw,120px) - 20px))}
+.pad{background:rgba(8,13,18,.76);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:6px 9px;font-size:12.5px;font-weight:600;color:#fff;display:inline-flex;gap:5px;align-items:center;touch-action:none}
+.pad.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pad.res{border-color:#E0413B;color:#FFC2B3}
+.pad.res.on{background:#E0413B;color:#fff}
+.pad.flash{background:#2F6FB2}
+@media (pointer:coarse){.pad kbd,.zlab kbd{display:none}}
+.ov{position:absolute;inset:0;display:grid;place-items:center;background:rgba(4,8,11,.66);padding:16px;overflow:auto;z-index:5}
+.box{width:min(600px,100%);background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;max-height:100%;overflow:auto}
+.box h2{font-family:var(--fd);font-size:30px;line-height:1.05;margin:4px 0 8px;text-transform:uppercase}
+.box p{margin:0 0 10px;color:#C9D4DC}
+.box .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.box ul{margin:4px 0 10px;padding-left:18px;color:#C9D4DC;font-size:14px}
+.box h4{margin:14px 0 4px;font-family:var(--fd);font-size:14px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.keys{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:13.5px;color:#C9D4DC}
+.keys kbd{justify-self:start;opacity:.9}
+.rot{display:none;color:var(--warn);font-size:13px}
+@media (orientation:portrait) and (max-width:700px){.rot{display:block}}
+.deb .score{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.deb .score .n{font-family:var(--fd);font-size:64px;font-weight:700;line-height:1}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin:12px 0}
+.mgrid div{background:var(--panel2);border-radius:8px;padding:7px 10px}
+.mgrid span{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-family:var(--fd)}
+.mgrid b{font-family:var(--fd);font-size:22px;font-variant-numeric:tabular-nums}
+.deb li.g{color:#9BE3B8}.deb li.e{color:#FFB1AC}
+.chart{width:100%;height:auto;display:block;margin:6px 0}
+@media (prefers-reduced-motion:reduce){.zone.pl .gauge{animation:none}#banner{transition:none}}
+@media (max-height:460px){.inst .v{font-size:19px}.inst{padding:4px 10px}#hint{top:calc(80px + env(safe-area-inset-top,0px));font-size:12px}.pad{padding:4px 7px;font-size:11.5px}}
+</style>
+
+<div class="wrap" id="app">
+  <header class="top">
+    <div class="brand">
+      <div class="eyebrow">Parapente · treino de incidentes</div>
+      <h1>SIV <span>de Bolso</span></h1>
+      <p>Simulador para ensaiar as reações a incidentes em voo entre as aulas práticas: fechamentos, estóis, espiral, turbulência e reserva — com vista do piloto, som do vento e do vário, e avaliação no final.</p>
+    </div>
+    <div class="segwrap">
+      <small>Modo de treino</small>
+      <div class="seg" role="radiogroup" aria-label="Modo de treino">
+        <button role="radio" data-mode="guided" aria-checked="true">Guiado</button>
+        <button role="radio" data-mode="eval" aria-checked="false">Avaliação</button>
+      </div>
+      <button class="btn ghost" id="installBtn" hidden>Instalar app</button>
+      <small id="iosHint" hidden>No iPhone: Compartilhar → Adicionar à Tela de Início</small>
+    </div>
+  </header>
+  <p class="notice"><b>Importante</b>Complementa, nunca substitui, a instrução prática e o curso SIV com instrutor sobre água. Os procedimentos são genéricos para velas escola (EN-A) e EN-B; siga sempre o manual da sua vela e a orientação do seu instrutor.</p>
+
+  <nav class="tabs" role="tablist">
+    <button class="tab" role="tab" data-tab="sim" aria-selected="true">Incidentes em voo</button>
+    <button class="tab" role="tab" data-tab="dec" aria-selected="false">Decisões rápidas</button>
+    <button class="tab" role="tab" data-tab="proc" aria-selected="false">Procedimentos</button>
+    <button class="tab" role="tab" data-tab="hist" aria-selected="false">Histórico</button>
+  </nav>
+
+  <section id="t-sim">
+    <p class="modeDesc" id="modeDesc"></p>
+    <div id="scnList"></div>
+    <div class="help">
+      <div class="card">
+        <h3>Teclado</h3>
+        <table>
+          <tr><td><kbd>←</kbd> <kbd>A</kbd> · <kbd>→</kbd> <kbd>D</kbd></td><td>Freio esquerdo · direito (segure para aprofundar; soltou, volta ao contato)</td></tr>
+          <tr><td><kbd>↓</kbd> <kbd>S</kbd></td><td>Os dois freios juntos</td></tr>
+          <tr><td><kbd>↑</kbd> <kbd>W</kbd></td><td>Mãos totalmente em cima</td></tr>
+          <tr><td><kbd>Z</kbd> · <kbd>C</kbd></td><td>Peso para a esquerda · direita</td></tr>
+          <tr><td><kbd>Espaço</kbd> · <kbd>O</kbd></td><td>Acelerador · orelhas (liga/desliga)</td></tr>
+          <tr><td><kbd>Q</kbd> · <kbd>E</kbd></td><td>Linha do estabilizador esquerdo · direito</td></tr>
+          <tr><td><kbd>R</kbd> <kbd>R</kbd> · <kbd>G</kbd> · <kbd>F</kbd></td><td>Reserva (agarrar, lançar) · recolher a vela · posição PLF</td></tr>
+          <tr><td><kbd>Esc</kbd></td><td>Pausa</td></tr>
+        </table>
+      </div>
+      <div class="card">
+        <h3>Celular (tela deitada)</h3>
+        <table>
+          <tr><td>Faixas laterais</td><td>Freios: arraste o polegar para baixo para frear. Topo da faixa = mãos em cima.</td></tr>
+          <tr><td>Botões de baixo</td><td>Peso, mãos em cima, acelerador, orelhas, estabilos, reserva, recolher vela e PLF.</td></tr>
+          <tr><td>Bombada</td><td>Freio fundo (passe da metade) e solte em até 2 s.</td></tr>
+          <tr><td>Som</td><td>Use fone: o vento some no parachutal e o vário apita na subida e alarma no afundamento.</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="t-dec" hidden>
+    <p class="modeDesc">Situações de decolagem, pouso e tomada de decisão. Você tem 15 segundos para cada resposta — como na vida real, hesitar também conta.</p>
+    <div id="quiz"></div>
+  </section>
+
+  <section id="t-proc" hidden>
+    <p class="modeDesc">Referência rápida usada pelo simulador. Leia antes de voar e revise depois de cada debriefing.</p>
+    <div class="grid proc" id="procList" style="margin-top:14px"></div>
+  </section>
+
+  <section id="t-hist" hidden>
+    <p class="modeDesc">Seus treinos ficam salvos apenas neste navegador.</p>
+    <div id="histBox"></div>
+  </section>
+</div>
+
+<div id="sim" hidden>
+  <canvas id="cv"></canvas>
+  <div class="inst">
+    <span class="k">Alt</span><span class="v" id="vAlt">0</span>
+    <span class="k">Vário</span><span class="v" id="vVs">0</span>
+    <span class="k">Vel ar</span><span class="v" id="vSpd">0</span>
+    <span class="k">Vel solo</span><span class="v" id="vGs">0</span>
+    <span class="k">G</span><span class="v" id="vG">1.0</span>
+    <span class="k" id="kX" hidden>x</span><span class="v sm" id="vX" hidden>x</span>
+  </div>
+  <div class="topr">
+    <div class="sname" id="sName"></div>
+    <div class="tbtns"><span class="tm" id="tmr">0:00</span><button class="ib" id="bFs">Tela cheia</button><button class="ib" id="bSnd">Som: on</button><button class="ib" id="bPause">Pausa</button></div>
+  </div>
+  <div id="banner"></div>
+  <div id="hint" hidden></div>
+  <div class="zone zl" id="zl"><div class="gauge"><i></i><b></b><em>sem pressão</em></div><span class="zlab">Freio E <kbd>←</kbd></span></div>
+  <div class="zone zr" id="zr"><div class="gauge"><i></i><b></b><em>sem pressão</em></div><span class="zlab">Freio D <kbd>→</kbd></span></div>
+  <div class="pads" id="pads">
+    <button class="pad" data-hold="wl">◀ Peso<kbd>Z</kbd></button>
+    <button class="pad" data-hold="up">Mãos em cima<kbd>↑</kbd></button>
+    <button class="pad" data-hold="wr">Peso ▶<kbd>C</kbd></button>
+    <button class="pad" data-hold="both">2 freios<kbd>↓</kbd></button>
+    <button class="pad" data-act="bar">Acelerador<kbd>Espaço</kbd></button>
+    <button class="pad" data-act="ears">Orelhas<kbd>O</kbd></button>
+    <button class="pad" data-act="stabL">Estabilo E<kbd>Q</kbd></button>
+    <button class="pad" data-act="stabR">Estabilo D<kbd>E</kbd></button>
+    <button class="pad res" data-act="res">Reserva<kbd>R</kbd></button>
+    <button class="pad" data-hold="g">Recolher vela<kbd>G</kbd></button>
+    <button class="pad" data-act="plf">PLF<kbd>F</kbd></button>
+  </div>
+  <div class="ov" id="ovStart"><div class="box" id="startBox"></div></div>
+  <div class="ov" id="ovPause" hidden><div class="box">
+    <h2>Pausado</h2>
+    <div class="acts"><button class="btn" id="pCont">Continuar</button><button class="btn ghost" id="pRestart">Recomeçar</button><button class="btn ghost" id="pExit">Sair</button></div>
+  </div></div>
+  <div class="ov" id="ovDeb" hidden><div class="box deb" id="debBox"></div></div>
+</div>
+
+<script>
+(()=>{'use strict';
+const $=q=>document.querySelector(q), $$=q=>[...document.querySelectorAll(q)];
+const clamp=(v,a,b)=>v<a?a:v>b?b:v, rnd=(a,b)=>a+Math.random()*(b-a), sgn=v=>v<0?-1:1, D2R=Math.PI/180;
+const pick=()=>Math.random()<.5?-1:1;
+const appr=(v,t,r)=>v+clamp(t-v,-r,r);
+const lado=s=>s<0?'esquerdo':'direito';
+const COARSE=matchMedia('(pointer:coarse)').matches;
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const store={get(k,d){try{const v=localStorage.getItem('sivb:'+k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem('sivb:'+k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+/* ================= PROCEDIMENTOS ================= */
+const PROC={
+ asym:{t:'Fechamento assimétrico',
+  s:['Estalo/barulho de tecido e um lado da vela dobra','O freio do lado fechado fica leve (sem pressão)','A vela começa a girar para o lado fechado'],
+  a:['Olhe para onde quer ir — não fixe o olhar na vela','Controle a DIREÇÃO primeiro: peso para o lado aberto + freio do lado aberto, dosado','A vela está com menos área: estola com menos freio. Não afunde o freio do lado aberto','Com a direção controlada, se não reabrir sozinho: bombada longa e profunda no lado fechado','Reabriu: volte ao voo reto e retome a pilotagem ativa'],
+  e:['Frear demais o lado aberto → negativa','Bombear o lado fechado com a vela ainda girando forte','Congelar sem reação → o giro pode virar espiral']},
+ front:{t:'Fechamento frontal',
+  s:['O bordo de ataque inteiro dobra; a vela “some” à frente','Você pendula para a frente e os dois freios perdem pressão','Afundamento aumenta'],
+  a:['Não freie fundo: no máximo freio leve e simétrico','Mantenha a direção; a maioria das velas escola reabre sozinha em poucos segundos','Se demorar: bombada curta e simétrica','Ao reabrir a vela avança (abatida): amorteça com os dois freios no momento certo, depois solte'],
+  e:['Freio profundo simétrico → parachutal ou estol','Não amortecer a abatida → novo fechamento']},
+ cravat:{t:'Gravata',
+  s:['Ponta da vela presa nas linhas após um fechamento','Giro persistente para o lado da gravata, mesmo com a vela aberta','Afundamento maior que o normal'],
+  a:['Controle a direção: peso para o lado oposto + freio oposto, dosado','Puxe a linha do estabilizador (geralmente laranja) do lado da gravata','Bombeie o lado da gravata','Se o giro acelera, você perde o controle ou está baixo: RESERVA'],
+  e:['Freio excessivo no lado oposto → negativa','Insistir com pouca altura em vez de lançar a reserva']},
+ stall:{t:'Estol total',
+  s:['Os freios ficam moles de repente; a vela recua e “despenca” para trás','Você cai com a vela deformada acima e atrás','Afundamento de 7–8 m/s ou mais'],
+  a:['Solte os freios juntos e de forma SIMÉTRICA (em manobra de SIV o instrutor pode ensinar outra técnica; no susto, simetria)','Prepare-se: a vela vai avançar forte à sua frente','Amorteça a abatida com os dois freios quando a vela passar à frente e solte em seguida','Volte ao voo reto e confira a vela'],
+  e:['Soltar um freio antes do outro → fechamento assimétrico violento ou negativa','Não amortecer a abatida → fechamento frontal']},
+ para:{t:'Parachutal (estol profundo)',
+  s:['Pouco vento no rosto — silêncio anormal','Vela sobre a cabeça, um pouco atrás; freios moles','Afundamento de 4–5 m/s sem avançar'],
+  a:['Mãos TOTALMENTE em cima','Acelerador (ou empurre os tirantes A à frente)','Nunca freie: parachutal + freio = estol total','Perto do chão: posição de PLF'],
+  e:['Frear para “segurar”','Ficar esperando com as mãos no contato (sem soltar tudo)'],
+  x:'Causas comuns: vela molhada (chuva, orvalho), vela velha/porosa, saída de orelhas sem acelerar, freio em ar turbulento.'},
+ spin:{t:'Negativa (vrille)',
+  s:['Giro muito rápido sobre o eixo vertical','O lado de dentro voa para trás; o freio daquele lado fica mole','Causa: freio profundo de um lado em baixa velocidade'],
+  a:['SOLTE os freios imediatamente','Prepare-se para a abatida e um possível fechamento','Amorteça e volte ao voo reto'],
+  e:['Segurar ou aumentar o freio','Soltar e logo depois frear fundo de novo']},
+ spiral:{t:'Espiral acentuada',
+  s:['Força G alta, vento forte no rosto, afundamento acima de 10 m/s','A vela vai à frente do horizonte; a visão pode escurecer'],
+  a:['Peso para FORA da curva','Solte aos poucos o freio de dentro; se a espiral continuar, freie o lado de fora','Saia devagar, em uma ou mais voltas, para dissipar a energia','Se a espiral não sai, está baixo ou a visão escurece: reserva'],
+  e:['Soltar tudo de uma vez → abatida forte e subida, risco de fechamento','Peso para dentro da curva (trava a espiral)']},
+ turb:{t:'Pilotagem ativa em turbulência',
+  s:['Vela recua (entrada de térmica) ou avança (saída/descendente)','Um freio fica leve: a vela está perdendo pressão daquele lado'],
+  a:['Mantenha a vela sobre a cabeça, freios com leve pressão','Vela recua → suba as mãos','Vela avança → freie para segurá-la','Freio ficou leve de um lado → freie esse lado na hora para manter a pressão','Nada de acelerador em turbulência forte'],
+  e:['Frear com a vela atrás → estol','Mãos paradas em cima o tempo todo (sem sentir a vela)']},
+ rotor:{t:'Rotor / sotavento',
+  s:['Turbulência forte e desordenada atrás de morros, árvores e construções','Descendentes fortes, fechamentos em sequência'],
+  a:['Prevenção: nunca voe a sotavento de obstáculos com vento','Se entrar: afaste-se do relevo pelo caminho mais curto até ar limpo','Pilotagem ativa firme, altura acima de tudo','Sem acelerador dentro do rotor'],
+  e:['Voar em direção ao obstáculo','Acelerar dentro da turbulência']},
+ wind:{t:'Vento forte: recuando',
+  s:['Velocidade no solo baixa ou negativa — o chão anda para a frente','Você é levado para trás, em direção ao sotavento'],
+  a:['Aproe ao vento','Acelerador','Se ainda não progride: orelhas + acelerador para descer rápido','Escolha o pouso antes de qualquer obstáculo atrás (rotor)','No solo: vire-se para a vela e desinfle (tirantes traseiros ou um freio todo)'],
+  e:['Virar de costas para o vento','Ficar no alto esperando o vento diminuir']},
+ reserve:{t:'Reserva',
+  s:['Quando: sem controle e sem recuperação à vista, colisão, gravata/espiral que não sai, linha ou tirante rompido','Altitude é tempo: na dúvida, lance'],
+  a:['OLHE para a alça','AGARRE firme','PUXE para fora do container','LANCE com força para o lado livre, longe da vela','Recolha a vela principal (linhas B ou um freio) para evitar o downplane','Posição de PLF: pés e joelhos juntos, levemente dobrados, olhe o horizonte e role ao tocar'],
+  e:['Hesitar com pouca altura','Não recolher a vela principal','Tocar o solo com as pernas abertas']}
+};
+
+/* ================= CENÁRIOS ================= */
+const CATS=['Fechamentos','Estol e parachutal','Espiral','Reserva','Ambiente','Avaliação'];
+const SCN=[
+ {id:'asym40',cat:'Fechamentos',name:'Fechamento assimétrico 40%',alt:450,turb:.12,proc:'asym',goal:'recover',inc:()=>({type:'asym',side:pick(),size:.42}),brief:'Ar calmo, voo reto afastado do relevo. Um dos lados vai fechar cerca de 40%.'},
+ {id:'asym65',cat:'Fechamentos',name:'Fechamento grande em térmica',alt:380,turb:.45,proc:'asym',goal:'recover',inc:()=>({type:'asym',side:pick(),size:.62}),brief:'Térmica forte e picotada. Fechamento de ~60% — a vela vai querer girar rápido.'},
+ {id:'front',cat:'Fechamentos',name:'Fechamento frontal',alt:450,turb:.2,proc:'front',goal:'recover',inc:()=>({type:'front',size:.85}),brief:'Saída de térmica com descendente forte. O bordo de ataque inteiro vai fechar.'},
+ {id:'cravat',cat:'Fechamentos',name:'Gravata',alt:550,turb:.1,proc:'cravat',goal:'recover',inc:()=>({type:'cravat',side:pick(),sev:.7}),brief:'Depois de um fechamento, a ponta ficou presa nas linhas. Giro persistente para o lado da gravata.'},
+ {id:'full',cat:'Estol e parachutal',name:'Estol total',alt:500,turb:0,proc:'stall',goal:'recover',inc:()=>({type:'full'}),brief:'Você freou demais para “segurar” uma subida e a vela estolou. Começa com os dois freios no fundo.'},
+ {id:'para',cat:'Estol e parachutal',name:'Parachutal',alt:380,turb:0,proc:'para',goal:'recover',inc:()=>({type:'para'}),brief:'Você atravessou uma chuva fina. A vela molhada entrou em parachutal: silêncio e pouco vento no rosto.'},
+ {id:'spin',cat:'Estol e parachutal',name:'Negativa',alt:500,turb:0,proc:'spin',goal:'recover',inc:()=>({type:'spin',side:pick()}),brief:'Centrando uma térmica devagar, você puxou demais um freio. Começa com um freio no fundo e a vela girando.'},
+ {id:'spiral',cat:'Espiral',name:'Espiral acentuada',alt:750,turb:0,proc:'spiral',goal:'recover',inc:()=>({type:'spiral',side:pick()}),brief:'A curva fechou e virou espiral: G alto e afundamento forte. Começa com o freio de dentro puxado.'},
+ {id:'cravatLow',cat:'Reserva',name:'Gravata baixa',alt:170,turb:.1,proc:'cravat',goal:'recover',inc:()=>({type:'cravat',side:pick(),sev:.92}),brief:'Gravata forte a menos de 200 m do chão. Decida rápido: resolver ou lançar a reserva.'},
+ {id:'collision',cat:'Reserva',name:'Colisão em voo',alt:320,turb:0,proc:'reserve',goal:'survive',inc:()=>({type:'collision',side:-1}),brief:'Outro parapente cruza a sua trajetória e as velas se enroscam.'},
+ {id:'turb',cat:'Ambiente',name:'Pilotagem ativa',alt:600,turb:.85,proc:'turb',goal:'time',duration:60,press:true,inc:null,brief:'60 s em ar turbulento. Mantenha a vela sobre a cabeça e a pressão nos freios para evitar fechamentos.'},
+ {id:'rotor',cat:'Ambiente',name:'Rotor atrás do morro',alt:230,turb:.2,proc:'rotor',goal:'rotor',press:true,wind:{spd:25,dir:0},ridge:{y:200,h:330},inc:null,brief:'Você está no sotavento de um morro (à sua frente), com vento de 25 km/h passando por cima dele. Saia do rotor.'},
+ {id:'wind',cat:'Ambiente',name:'Vento forte: recuando',alt:220,turb:.25,proc:'wind',goal:'wind',press:true,wind:{spd:50,dir:0,grow:.15},lee:260,inc:null,brief:'O vento subiu para ~50 km/h e continua aumentando. Você está recuando; 260 m atrás há um morro com rotor. Chegue ao chão antes disso.'},
+ {id:'surprise',cat:'Avaliação',name:'Voo surpresa',alt:700,turb:.3,proc:null,goal:'recover',press:true,surprise:true,inc:()=>pickInc(),brief:'Voo normal em térmica fraca. Em algum momento algo vai acontecer — sem aviso. Faça pilotagem ativa enquanto isso.'}
+];
+function pickInc(){const r=Math.random();if(r<.45)return{type:'asym',side:pick(),size:rnd(.35,.6)};if(r<.75)return{type:'front',size:.8};return{type:'cravat',side:pick(),sev:.65}}
+const INC_PROC={asym:'asym',front:'front',cravat:'cravat',full:'stall',para:'para',spin:'spin',spiral:'spiral',collision:'reserve'};
+
+/* ================= DECISÕES ================= */
+const DEC=[
+ {s:'Na corrida de decolagem a vela subiu com a ponta esquerda fechada e puxando para a esquerda. Você ainda está no chão.',o:['Continuar e corrigir no ar','Abortar: parar, virar para a vela e derrubá-la (freios ou tirantes traseiros)','Frear forte a direita e decolar assim mesmo'],c:1,x:'Só decole com a vela aberta, sobre a cabeça, sem nós e sob controle. Se qualquer item falhar, aborte — no chão o problema é pequeno.'},
+ {s:'Checagem final antes de inflar. O que não pode faltar?',o:['Conferir só o vento','Fivelas das pernas e do peito fechadas, capacete preso, mosquetões travados, linhas livres, vento e espaço aéreo','Conferir o vário'],c:1,x:'Faça sempre a mesma checagem na mesma ordem (piloto, vela, linhas, vento, espaço aéreo). Esquecer as fivelas das pernas é um acidente clássico.'},
+ {s:'Logo depois de sair do chão você percebe um nó pequeno na ponta direita. A vela voa, mas puxa para a direita.',o:['Voltar e pousar na rampa','Afastar-se do relevo controlando a direção, tentar soltar com o estabilo e ir para o pouso oficial','Lançar a reserva imediatamente'],c:1,x:'Primeiro ganhe distância do relevo e controle a direção. Pousar no alto com a vela com problema é arriscado.'},
+ {s:'Você vai pousar numa árvore; não há alternativa.',o:['Pés e joelhos juntos, braços protegendo o rosto, abraçar o tronco ou um galho grosso e esperar o resgate sem se soltar','Frear tudo para estolar em cima da copa','Soltar-se do selete assim que parar'],c:0,x:'Entre com as pernas juntas e proteja o rosto. Depois de parar, prenda-se ao tronco e espere ajuda: soltar-se do equipamento pode causar uma queda maior.'},
+ {s:'Um pouso na água é inevitável.',o:['Insistir em chegar à margem até o último segundo, mesmo baixo e com vento de cauda','Pousar contra o vento perto da margem, preparado para sair rápido do selete e se afastar da vela e das linhas','Soltar-se do selete a 10 m de altura'],c:1,x:'O perigo é se enroscar nas linhas e na vela molhada. Combine com seu instrutor a sequência de soltura do seu selete — alguns com airbag podem virar o piloto de cabeça para baixo.'},
+ {s:'Fios de alta tensão à frente na aproximação.',o:['Se ainda há altura, desviar cedo; se inevitável, pernas juntas, nunca tocar dois fios ao mesmo tempo e, se ficar pendurado, esperar a concessionária desligar','Curva forte e baixa para desviar no último momento','Pousar em cima dos fios de pé'],c:0,x:'Decida cedo. Pendurado nos fios, ninguém deve tocar em você ou no equipamento até a rede ser desligada.'},
+ {s:'Você pousou com vento forte e a vela reinflou, começando a te arrastar.',o:['Segurar os freios em posição de voo','Virar para a vela e puxar os tirantes traseiros (C/D) ou um freio até o fim para desinflar, indo em direção a ela','Soltar o selete'],c:1,x:'Desinfle a vela: tirantes traseiros ou um freio todo, andando em direção a ela para tirar a pressão.'},
+ {s:'Final baixa (15 m): você sente a vela perder velocidade porque o vento diminui perto do chão (gradiente).',o:['Frear para “segurar” a vela','Manter velocidade na final (pouco freio) e frear só no flare','Fazer uma curva para alongar'],c:1,x:'O gradiente tira velocidade do ar perto do solo. Aproxime com velocidade de reserva e evite curvas baixas.'},
+ {s:'A 150 m você percebe que não chega ao pouso oficial.',o:['Insistir no oficial, passando baixo sobre árvores e fios','Escolher cedo uma área aberta, sem fios, contra o vento, e montar a aproximação (perna do vento, base, final)','Fazer 360s para esperar uma térmica'],c:1,x:'Pouso fora é normal. O erro é decidir tarde.'},
+ {s:'Voando na encosta, outro parapente vem de frente, em rota de colisão.',o:['Os dois desviam para a DIREITA','Subir para passar por cima','Manter o rumo e esperar o outro desviar'],c:0,x:'Regra geral: ambos desviam para a direita. Na encosta, quem está com o morro à direita tem prioridade; o outro abre para fora.'},
+ {s:'Entrando forte numa térmica, a vela fica para trás.',o:['Frear para segurar a subida','Subir as mãos para a vela recuperar velocidade','Acelerar a fundo'],c:1,x:'Vela atrás + freio = risco de estol. Solte, deixe a vela vir e só então retome a pressão.'},
+ {s:'Na rampa, rajadas de 30 km/h e térmicas fortes. Você é nível 1.',o:['Decolar rápido entre as rajadas','Não voar agora: esperar a condição acalmar ou ir embora','Decolar com as orelhas puxadas'],c:1,x:'A decisão mais importante é a de não decolar. Condição acima do seu nível não se “resolve” no ar.'}
+];
+
+/* ================= MENU / UI ================= */
+let MODE=store.get('mode','guided');
+function setMode(m){MODE=m;store.set('mode',m);$$('.seg button').forEach(b=>b.setAttribute('aria-checked',b.dataset.mode===m));
+ $('#modeDesc').textContent=m==='guided'?'Guiado: o incidente acontece cerca de 3 s depois de iniciar, com aviso na tela e os passos do procedimento ao lado. Bom para aprender a sequência.':'Avaliação: o incidente acontece num momento aleatório, sem aviso nem dicas — só a vela, o som e os instrumentos, como no voo real. Treina o susto e o tempo de reação.';}
+$$('.seg button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+$$('.tab').forEach(t=>t.addEventListener('click',()=>{$$('.tab').forEach(x=>x.setAttribute('aria-selected',x===t));['sim','dec','proc','hist'].forEach(k=>$('#t-'+k).hidden=k!==t.dataset.tab);if(t.dataset.tab==='hist')renderHist();if(t.dataset.tab==='dec')quizIntro();}));
+
+function hist(){return store.get('hist',[])}
+function scoreCls(n){return n>=80?'good':n>=55?'mid':'badc'}
+function renderMenu(){
+ const H=hist();let html='';
+ for(const c of CATS){const list=SCN.filter(s=>s.cat===c);html+=`<div class="cat"><h2>${c}</h2><div class="grid">`;
+  for(const s of list){const runs=H.filter(h=>h.id===s.id);const best=runs.length?Math.max(...runs.map(r=>r.score)):null;
+   const tl=s.turb>=.6?'turbulento':s.turb>=.3?'térmico':s.turb>0?'ar calmo':'sem turbulência';
+   html+=`<div class="card"><h3>${s.name}</h3><p>${s.brief}</p><div class="row"><div class="chips"><span class="chip">${s.alt} m</span><span class="chip">${tl}</span>${best!=null?`<span class="chip ${best>=55?'best':'low'}">melhor ${best}</span>`:''}</div><button class="btn" data-fly="${s.id}">Voar</button></div></div>`;}
+  html+='</div></div>';}
+ $('#scnList').innerHTML=html;
+ $$('[data-fly]').forEach(b=>b.addEventListener('click',()=>openSim(SCN.find(s=>s.id===b.dataset.fly))));
+}
+function renderProc(){
+ $('#procList').innerHTML=Object.values(PROC).map(p=>`<div class="card"><h3>${p.t}</h3><h4>Sinais</h4><ul>${p.s.map(x=>`<li>${x}</li>`).join('')}</ul><h4 class="a">O que fazer</h4><ul>${p.a.map(x=>`<li>${x}</li>`).join('')}</ul><h4 class="e">Erros comuns</h4><ul>${p.e.map(x=>`<li>${x}</li>`).join('')}</ul>${p.x?`<p style="font-size:13px;color:var(--muted)">${p.x}</p>`:''}</div>`).join('');
+}
+let delArm=false;
+function renderHist(){
+ const H=hist();
+ if(!H.length){$('#histBox').innerHTML='<div class="qbox"><p style="margin:0">Nenhum treino ainda. Faça um voo na aba “Incidentes em voo”.</p></div>';return}
+ const oc={ok:'Recuperou',partial:'Parcial',fail:'Não recuperou'};
+ $('#histBox').innerHTML=`<div class="tscroll"><table class="hist"><thead><tr><th>Data</th><th>Cenário</th><th>Modo</th><th>Resultado</th><th>Nota</th></tr></thead><tbody>${H.slice().reverse().map(h=>`<tr><td>${new Date(h.d).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td>${esc(h.name)}</td><td>${h.mode==='eval'?'Avaliação':'Guiado'}</td><td>${oc[h.o]||h.o}</td><td class="sc ${scoreCls(h.score)}">${h.score}</td></tr>`).join('')}</tbody></table></div><div style="margin-top:14px"><button class="btn ghost" id="delH">Apagar histórico</button></div>`;
+ delArm=false;$('#delH').addEventListener('click',e=>{if(!delArm){delArm=true;e.target.textContent='Confirmar: apagar tudo';return}store.set('hist',[]);renderHist();renderMenu();});
+}
+
+/* ---------- quiz ---------- */
+let QZ=null;
+function quizIntro(){ if(QZ&&QZ.active) return;
+ $('#quiz').innerHTML=`<div class="qbox"><p style="margin:0 0 12px">8 situações sorteadas entre ${DEC.length}. Responda antes do tempo acabar.</p><button class="btn" id="qStart">Começar</button></div>`;
+ $('#qStart').addEventListener('click',()=>{QZ={list:DEC.slice().sort(()=>Math.random()-.5).slice(0,8),i:0,ok:0,active:true};qRender();});}
+function qRender(){
+ const q=QZ.list[QZ.i];clearTimeout(QZ.to);
+ const order=q.o.map((t,i)=>({t,i})).sort(()=>Math.random()-.5);
+ $('#quiz').innerHTML=`<div class="qbox"><div class="meta"><span>Situação ${QZ.i+1} de ${QZ.list.length}</span><span>${QZ.ok} certas</span></div><div class="tbar"><i id="qbar"></i></div><div class="sit">${q.s}</div><div class="opts">${order.map(o=>`<button class="opt" data-i="${o.i}">${o.t}</button>`).join('')}</div><div id="qexp"></div></div>`;
+ requestAnimationFrame(()=>requestAnimationFrame(()=>{const b=$('#qbar');if(b)b.style.width='0%'}));
+ $$('.opt').forEach(b=>b.addEventListener('click',()=>qAnswer(+b.dataset.i)));
+ QZ.to=setTimeout(()=>qAnswer(-1),15000);
+}
+function qAnswer(i){
+ clearTimeout(QZ.to);const q=QZ.list[QZ.i];const ok=i===q.c;if(ok)QZ.ok++;
+ const bar=$('#qbar');if(bar){const w=getComputedStyle(bar).width;bar.style.transition='none';bar.style.width=w;}
+ $$('.opt').forEach(b=>{b.disabled=true;const k=+b.dataset.i;if(k===q.c)b.classList.add('right');else if(k===i)b.classList.add('wrong');});
+ const last=QZ.i>=QZ.list.length-1;
+ $('#qexp').innerHTML=`<div class="expl"><b class="${ok?'good':'badc'}">${i<0?'Tempo esgotado':ok?'Correto':'Não é o melhor'}</b> — ${q.x}</div><div style="margin-top:12px"><button class="btn" id="qNext">${last?'Ver resultado':'Próxima'}</button></div>`;
+ $('#qNext').addEventListener('click',()=>{if(last){const n=Math.round(QZ.ok/QZ.list.length*100);QZ.active=false;
+   const H=hist();H.push({id:'quiz',name:'Decisões rápidas',score:n,o:n>=70?'ok':'partial',mode:'quiz',d:Date.now()});store.set('hist',H.slice(-80));
+   $('#quiz').innerHTML=`<div class="qbox"><div class="meta"><span>Resultado</span></div><div class="sit"><span class="sc ${scoreCls(n)}" style="font-size:44px">${QZ.ok}/${QZ.list.length}</span></div><p>Revise as explicações das que errou na aba Procedimentos e com seu instrutor.</p><button class="btn" id="qAgain">Outra rodada</button></div>`;
+   $('#qAgain').addEventListener('click',()=>{QZ=null;quizIntro();$('#qStart').click();});}
+  else{QZ.i++;qRender();}});
+}
+
+/* ================= ÁUDIO ================= */
+const AU={ctx:null,on:store.get('snd',true),ph:0,
+ init(){ if(this.ctx) {try{this.ctx.resume()}catch(e){} return;}
+  try{const C=window.AudioContext||window.webkitAudioContext;const ctx=this.ctx=new C();
+   const len=ctx.sampleRate*2,buf=ctx.createBuffer(1,len,ctx.sampleRate),d=buf.getChannelData(0);let l=0;for(let i=0;i<len;i++){const w=Math.random()*2-1;l=(l+.02*w)/1.02;d[i]=w*.5+l*3;}
+   this.nb=buf;this.m=ctx.createGain();this.m.gain.value=.9;this.m.connect(ctx.destination);
+   const src=ctx.createBufferSource();src.buffer=buf;src.loop=true;this.wf=ctx.createBiquadFilter();this.wf.type='bandpass';this.wf.Q.value=.5;this.wg=ctx.createGain();this.wg.gain.value=0;src.connect(this.wf);this.wf.connect(this.wg);this.wg.connect(this.m);src.start();
+   this.vo=ctx.createOscillator();this.vo.type='triangle';this.vg=ctx.createGain();this.vg.gain.value=0;this.vo.connect(this.vg);this.vg.connect(this.m);this.vo.start();
+  }catch(e){this.ctx=null}},
+ update(dt,v,vs,active){const c=this.ctx;if(!c)return;const on=this.on&&active;const t=c.currentTime;
+  this.wg.gain.setTargetAtTime(on?clamp(Math.pow(v/42,2)*.22,0,.45):0,t,.08);this.wf.frequency.setTargetAtTime(250+v*16,t,.1);
+  let g=0,f=600;
+  if(vs>0.25){const per=clamp(.55-vs*.07,.13,.55);this.ph=(this.ph+dt/per)%1;f=620+vs*95;g=this.ph<.5?.05:0;}
+  else if(vs<-2.8){f=clamp(420+vs*9,230,420);g=.035;}
+  this.vo.frequency.setTargetAtTime(f,t,.01);this.vg.gain.setTargetAtTime(on?g:0,t,.012);},
+ bang(k=1){const c=this.ctx;if(!c||!this.on)return;const s=c.createBufferSource();s.buffer=this.nb;const f=c.createBiquadFilter();f.type='lowpass';f.frequency.value=900;const g=c.createGain();const t=c.currentTime;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.9*k,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.45);s.connect(f);f.connect(g);g.connect(this.m);s.start(t,Math.random());s.stop(t+.5);}
+};
+
+/* ================= ESTADO ================= */
+const BASE=.12;
+let S=null;const SIM={open:false,started:false,paused:false,raf:0,last:0};
+const K={},BTN={},TOUCH=[null,null],PUMP=[{deep:false,t:0},{deep:false,t:0}];
+function newState(sc){
+ const s={sc,mode:MODE,t:0,alt:sc.alt,x:0,y:0,hdg:0,bank:0,pitch:0,pv:0,V:37,vEff:37,vs:-1.1,g:1,turn:0,gs:37,
+  b:[BASE,BASE],w:0,bar:0,barOn:false,ears:false,earsAmt:0,forced:false,
+  c:[0,0],front:0,crav:{side:0,sev:0,stab:false,locked:false},stall:'none',spinDir:0,spiral:0,spB:0,spExit:null,
+  pl:[null,null],pe:null,ap:{ok:0,n:0},gust:0,lift:0,nt:3,T:0,
+  res:{step:0,tGrab:0,tThrow:0,open:false,tOpen:0,wingIn:0,plf:false},
+  tm:{},flags:{},log:[],err:[],good:[],inc:null,incAt:null,t0:null,react:null,altAt0:sc.alt,hdgCtl:0,ctlT:0,ctlDone:false,
+  maxBank:0,maxG:1,uncT:0,stT:0,done:false,collided:false,shake:0,rain:0,trail:[],trT:0,ridgeD:999,
+  wind:{spd:sc.wind?sc.wind.spd:0,dir:sc.wind?sc.wind.dir:0}};
+ if(!sc.inc){s.t0=0;}
+ else{const d=sc.surprise?rnd(6,22):(MODE==='guided'?2.5:rnd(3,11));s.incAt=d;}
+ return s;
+}
+function log(m,k='ev'){S.log.push({t:S.t,m,k})}
+function addErr(m,p,key){if(key){if(S.flags['e_'+key])return;S.flags['e_'+key]=1}S.err.push({m,p});log(m,'err')}
+function addGood(m,key){if(key){if(S.flags['g_'+key])return;S.flags['g_'+key]=1}S.good.push(m);log(m,'ok')}
+function banner(txt,cls='',dur=2.2,force=false){if(S&&S.mode==='eval'&&!force)return;const b=$('#banner');b.textContent=txt;b.className='show '+cls;clearTimeout(banner.t);banner.t=setTimeout(()=>b.className='',dur*1000)}
+
+/* ================= INCIDENTES ================= */
+function collapse(side,size){const s=S,i=side<0?0:1;s.c[i]=Math.max(s.c[i],clamp(size,0,.8));s.pv+=8;s.shake=1;AU.bang(.8);log(`Fechamento ${Math.round(size*100)}% no lado ${lado(side)}`);}
+function trigger(inc){
+ const s=S;s.inc=inc;s.t0=s.t;s.altAt0=s.alt;s.hdgCtl=0;s.ctlDone=false;s.ctlT=0;
+ switch(inc.type){
+  case 'asym':collapse(inc.side,inc.size);banner('Fechamento '+(inc.side<0?'esquerdo':'direito')+'!','alert');break;
+  case 'front':s.front=inc.size;s.pv=-45;s.shake=1;AU.bang(1);log('Fechamento frontal');banner('Frontal!','alert');break;
+  case 'cravat':s.crav={side:inc.side,sev:inc.sev,stab:false,locked:false};s.c[inc.side<0?0:1]=.22;s.shake=1;AU.bang(.9);log(`Gravata no lado ${lado(inc.side)}`);banner('Gravata '+(inc.side<0?'esquerda':'direita')+'!','alert');break;
+  case 'full':s.stall='full';s.b=[.95,.95];s.forced=true;s.pitch=-30;s.V=12;s.vs=-6;log('Estol total instalado');banner('Estol!','alert');break;
+  case 'para':s.stall='para';s.rain=1;s.V=15;log('Parachutal instalado');banner('Parachutal','alert');break;
+  case 'spin':s.stall='spin';s.spinDir=inc.side;s.b=inc.side<0?[.95,.2]:[.2,.95];s.forced=true;s.pitch=-12;log('Negativa instalada');banner('Negativa!','alert');break;
+  case 'spiral':s.spiral=inc.side;s.bank=inc.side*62;s.spB=62;s.V=60;s.vs=-11;const ii=inc.side<0?0:1;s.b[ii]=.55;s.forced=true;log('Espiral instalada');banner('Espiral!','alert');break;
+  case 'collision':collapse(-1,.45);s.crav={side:-1,sev:.9,stab:false,locked:true};s.collided=true;s.shake=1.6;AU.bang(1.2);log('Colisão: velas enroscadas');banner('Colisão!','alert',2.2,true);break;
+ }
+}
+function onPump(side){
+ const s=S,i=side<0?0:1;if(s.res.step)return;
+ if(s.crav.locked&&s.crav.side===side){log('Bombada sem efeito: velas enroscadas');return;}
+ if(s.c[i]>.02){const early=Math.abs(s.turn)>50;s.c[i]=Math.max(0,s.c[i]-.32);log(`Bombada no lado ${lado(side)}`);
+  if(early)addErr('Bombeou o lado fechado com a vela ainda girando forte — controle a direção primeiro',8,'pumpEarly');else addGood('Bombada no lado fechado com a direção sob controle','pump');}
+ else if(s.crav.sev>.02&&s.crav.side===side){if(!s.crav.locked){s.crav.sev=Math.max(0,s.crav.sev-(s.crav.stab?.3:.08));log(`Bombada na gravata`);if(s.crav.sev<.05){s.crav.sev=0;s.c[i]=0;addGood('Gravata desfeita');banner('Gravata desfeita','',1.6);}}}
+ else if(s.c[1-i]>.02)addErr('Bombeou o lado aberto em vez do lado fechado',6,'pumpWrong');
+}
+function stabilo(side){const s=S;if(!s||s.res.step)return;flashPad(side<0?'stabL':'stabR');
+ if(s.crav.sev>.02){if(side===s.crav.side){if(!s.crav.stab){s.crav.stab=true;if(!s.crav.locked)s.crav.sev=Math.max(0,s.crav.sev-.35);addGood('Puxou a linha do estabilizador do lado da gravata');banner(`Estabilo ${side<0?'E':'D'} puxado — bombeie esse lado`,'sm',1.8);}}
+  else addErr('Puxou o estabilizador do lado errado',8,'stabWrong');}
+ else banner('Sem gravata: estabilo sem efeito','sm',1.2);}
+function uncontrolled(){const s=S;return s.collided||s.stall==='spin'||s.stall==='full'||!!s.spiral||Math.abs(s.turn)>45}
+function reservePress(){
+ const s=S;if(!s||s.res.step>=2||s.done)return;
+ if(s.res.step===0){s.res.step=1;s.res.tGrab=s.t;s.forced=false;
+  const unc=s.uncT>1||s.collided||s.stall!=='none'||s.spiral;
+  if(unc&&s.alt<300)addGood('Decisão correta: sem controle e com pouca altura → reserva');
+  else if(unc)addGood('Lançou a reserva com a vela sem controle (com essa altura, dava para tentar recuperar antes)');
+  else addErr('Reserva com a vela sob controle — avalie antes; ainda assim, na dúvida, lançar é mais seguro do que não lançar',5);
+  if(s.inc&&s.inc.type==='collision'&&s.react==null)s.react=s.t-s.t0;
+  banner('Alça na mão — R de novo: PUXAR e LANÇAR','sm',2.5,true);log('Agarrou a alça da reserva');}
+ else{s.res.step=2;s.res.tThrow=s.t;banner('Reserva lançada!','',1.6,true);log('Lançou a reserva');AU.bang(.5);}
+}
+function togglePLF(){const s=S;if(!s)return;s.res.plf=!s.res.plf;log(s.res.plf?'Posição de PLF':'Saiu da posição de PLF');}
+function toggleBar(){const s=S;if(!s||s.res.open)return;s.barOn=!s.barOn;log(s.barOn?'Acelerador':'Soltou o acelerador');if(s.barOn&&s.sc.ridge)addErr('Acelerou dentro do rotor (turbulência forte aumenta o risco de fechamento)',8,'barRotor');}
+function toggleEars(){const s=S;if(!s||s.res.open)return;s.ears=!s.ears;log(s.ears?'Orelhas':'Soltou as orelhas');}
+function userInput(){if(S&&S.forced){S.forced=false;}}
+
+/* ================= FÍSICA ================= */
+function updateInputs(dt){
+ const s=S;const up=K.arrowup||K.w||BTN.up;const both=K.arrowdown||K.s||BTN.both;
+ const held=[K.arrowleft||K.a||both,K.arrowright||K.d||both];
+ if(!s.forced){for(let i=0;i<2;i++){let tgt,rate;
+  if(up){tgt=0;rate=3.5}else if(TOUCH[i]!=null){tgt=TOUCH[i];rate=7}else if(held[i]){tgt=1;rate=1.15}else{tgt=BASE;rate=2.2}
+  if(s.res.open){tgt=Math.min(tgt,.3)}
+  s.b[i]=appr(s.b[i],tgt,rate*dt);}}
+ s.w=appr(s.w,((K.z||BTN.wl)?-1:0)+((K.c||BTN.wr)?1:0),3*dt);
+ for(let i=0;i<2;i++){const p=PUMP[i],b=s.b[i];if(!p.deep&&b>.6){p.deep=true;p.t=s.t}else if(p.deep&&b<.3){p.deep=false;if(s.t-p.t<2.2&&!s.forced)onPump(i?1:-1)}}
+}
+function turbStep(dt){
+ const s=S,sc=s.sc;let T=sc.turb||0;
+ if(sc.ridge){s.ridgeD=sc.ridge.y-s.y;T=.15+1.05*clamp(1-(s.ridgeD-30)/470,0,1)}
+ s.T=T;s.gust=appr(s.gust,0,1.2*dt);
+ let lift=T>0?(Math.sin(s.t*.23)*.9+Math.sin(s.t*.61+1)*.5)*T*.8:0;
+ if(sc.ridge)lift-=1.6*clamp(1-(s.ridgeD-30)/470,0,1);
+ s.lift=lift+s.gust;
+ if(sc.wind&&sc.wind.grow)s.wind.spd+=sc.wind.grow*dt;
+ // pressure-loss progression
+ for(let i=0;i<2;i++){const p=s.pl[i];if(!p)continue;p.t+=dt;
+  if(s.b[i]>.36){s.ap.ok++;s.ap.n++;log(`Segurou a pressão no freio ${lado(i?1:-1)} (${p.t.toFixed(1)} s)`,'ok');s.pl[i]=null;}
+  else if(p.t>1.35){s.ap.n++;s.pl[i]=null;const side=i?1:-1;collapse(side,p.size*(1+.5*s.bar));
+   addErr(`Não segurou a pressão no freio ${lado(side)} → fechamento`,6);
+   if(sc.surprise&&!s.inc){s.incAt=null;s.inc={type:'asym',side,size:p.size};s.t0=s.t;s.altAt0=s.alt;s.hdgCtl=0;}}}
+ if(s.pe){s.pe.t+=dt;const bA=(s.b[0]+s.b[1])/2;
+  if(s.pe.k==='back'&&s.pitch<-5&&bA<.16){s.ap.ok++;s.ap.n++;s.pe=null;}
+  else if(s.pe&&s.pe.k==='fwd'&&s.pitch>5&&bA>.33){s.ap.ok++;s.ap.n++;log('Segurou a vela na abatida','ok');s.pe=null;}
+  else if(s.pe&&s.pe.t>1.6){s.ap.n++;s.pe=null;}}
+ if(T<=0||s.res.step||s.stall!=='none'||s.spiral||s.done)return;
+ s.nt-=dt;
+ if(s.nt<=0){s.nt=rnd(2.2,4.5)/(.35+T);const r=Math.random();
+  if(r<.32){s.pv-=38*T;s.gust=2.4*T;if(sc.press&&!s.pe)s.pe={k:'back',t:0}}
+  else if(r<.6||!sc.press){s.pv+=42*T;s.gust=-2.4*T;if(sc.press&&!s.pe)s.pe={k:'fwd',t:0}}
+  else{const side=pick(),i=side<0?0:1;if(!s.pl[i]&&s.c[i]===0&&s.front===0)s.pl[i]={t:0,size:clamp(.28+.3*T*Math.random()+.08,.25,.62)};}}
+}
+function stallLogic(dt){
+ const s=S,[bL,bR]=s.b,bA=(bL+bR)/2,tm=s.tm;
+ if(s.stall==='none'&&!s.spiral){
+  if(bA>.82&&Math.abs(bR-bL)<.35){tm.st=(tm.st||0)+dt;if(tm.st>1.1)enterStall('full','Estol total: freios fundos e simétricos por tempo demais');}else tm.st=0;
+  for(let i=0;i<2;i++){const b=s.b[i],o=s.b[1-i];const oc=s.c[1-i]+(s.crav.sev>0&&s.crav.side===(i?-1:1)?s.crav.sev*.5:0);
+   const thr=.86-.4*Math.min(oc,1)-(s.vEff<30?.06:0);s['thr'+i]=thr;
+   if(b>thr&&b-o>.28){tm['sp'+i]=(tm['sp'+i]||0)+dt;if(tm['sp'+i]>.6){enterSpin(i?1:-1,oc>.1?'Negativa: freio demais no lado aberto (com menos área a vela estola antes)':'Negativa: freio profundo de um lado em baixa velocidade');}}else tm['sp'+i]=0;}
+  if(s.front>.3&&bA>.55){tm.pa=(tm.pa||0)+dt;if(tm.pa>.8)enterStall('para','Parachutal: freio profundo durante o fechamento frontal');}else tm.pa=0;
+  if(s.pitch<-12&&bA>.5){tm.pb=(tm.pb||0)+dt;if(tm.pb>1)enterStall('full','Estol: freou com a vela recuada');}else tm.pb=0;
+ }else if(s.stall==='full'){
+  if(!s.forced&&bA<.3){s.stall='none';s.pv+=70;log('Soltou os freios: saída do estol');
+   if(Math.abs(bL-bR)>.3){const side=bL<bR?-1:1;collapse(side,.5);addErr('Soltou os freios de forma assimétrica na saída do estol',12);}else addGood('Saída do estol com as mãos simétricas','stsym');}
+ }else if(s.stall==='spin'){
+  if(!s.forced&&bA<.35){s.stall='none';s.pv+=55;s.bank=s.spinDir*8;log('Soltou os freios: saída da negativa');
+   if(Math.random()<.55)collapse(s.spinDir,.3);}
+ }else if(s.stall==='para'){
+  const handsUp=bL<.06&&bR<.06;
+  if(bA>.45){tm.pf=(tm.pf||0)+dt;if(tm.pf>.7){s.stall='none';enterStall('full','Freou em parachutal → estol total');return;}}else tm.pf=0;
+  const r=(handsUp?1:0)+(s.bar>.5?1.5:0);tm.px=(tm.px||0)+dt*r;
+  if(tm.px>3){s.stall='none';s.pv+=30;s.rain=0;addGood('Saiu do parachutal: mãos em cima'+(s.bar>.5?' + acelerador':''));banner('Vela voando de novo','',1.6);}
+ }
+}
+function enterStall(k,msg){const s=S;s.stall=k;s.tm={};if(k==='full'){s.pitch=Math.min(s.pitch,-10);s.pv=-40;}AU.bang(.6);addErr(msg,15);banner(k==='full'?'Estol!':'Parachutal!','alert');}
+function enterSpin(dir,msg){const s=S;s.stall='spin';s.spinDir=dir;s.tm={};AU.bang(.7);s.shake=1;addErr(msg,15);banner('Negativa!','alert');}
+
+function physics(dt){
+ const s=S;
+ stallLogic(dt);
+ const [bL,bR]=s.b,bA=(bL+bR)/2,bd=bR-bL;
+ s.earsAmt=appr(s.earsAmt,s.ears?1:0,1.5*dt);s.bar=appr(s.bar,s.barOn?1:0,1.2*dt);
+ // reopening
+ for(let i=0;i<2;i++){if(s.c[i]>0){const r=(s.stall==='none'&&!(s.crav.locked&&s.crav.side===(i?1:-1)))?.055:0;s.c[i]=Math.max(0,s.c[i]-r*dt);if(s.c[i]<.03&&!(s.crav.locked&&i===0)){s.c[i]=0;s.pv+=10;log(`Lado ${lado(i?1:-1)} reabriu`);}}}
+ if(s.front>0){const sym=Math.abs(bL-bR)<.2;let r=.28;if(sym&&bA>.2&&bA<.6)r=.6;if(bA>.6)r=.08;if(s.stall!=='none')r=0;s.front-=r*dt;
+  if(s.front<=.03){s.front=0;s.pv+=42;log('Vela reabriu — abatida');}}
+ if(s.crav.sev>0&&!s.crav.locked){s.crav.sev=Math.max(0,s.crav.sev-.008*dt);}
+ const csum=s.c[0]+s.c[1];
+ // speed
+ let Vt;
+ if(s.stall==='full')Vt=10;else if(s.stall==='para')Vt=15;else if(s.stall==='spin')Vt=18;
+ else if(s.spiral)Vt=42+Math.abs(s.bank)*.45;
+ else Vt=37-17*Math.pow(bA,1.1)+11*s.bar-4*s.earsAmt-14*s.front-8*csum;
+ s.V+=(Vt-s.V)*Math.min(1,dt*1.2);
+ s.vEff=Math.max(0,s.V+clamp(s.pitch,-20,40)*.3);
+ // bank
+ if(s.spiral){const d=s.spiral,ii=d<0?0:1,inner=s.b[ii],outer=s.b[1-ii];
+  const eff=clamp(-s.w*d*.6+outer*1.3-Math.max(0,inner-.15)*1.4-s.crav.sev*.8-s.c[ii]*.8,-1,1.3);
+  if(eff>.12&&s.spExit==null)s.spExit=s.t;
+  const rate=eff>.12?-eff*22:(.12-eff)*6;
+  s.spB=clamp(s.spB+rate*dt,0,78);s.bank=d*s.spB;s.spEff=eff;
+  if(s.spB<38){s.spiral=0;const dur=s.t-(s.spExit??s.t);
+   if(dur<1.6){s.pv+=70;addErr('Saída brusca da espiral → abatida forte',10);}else{s.pv+=25;addGood('Saída progressiva da espiral');}
+   log('Saiu da espiral');}}
+ else if(s.stall==='full'){s.bank=Math.sin(s.t*1.7)*12}
+ else if(s.stall==='spin'){s.bank=s.spinDir*10+Math.sin(s.t*5)*4}
+ else if(s.stall==='para'){s.bank=appr(s.bank,Math.sin(s.t*.9)*3,20*dt)}
+ else{let steer=62*bd+22*s.w-95*(s.c[0]-s.c[1]);if(s.crav.sev>0)steer+=80*s.crav.sev*s.crav.side;
+  let bT=clamp(steer*.85,-70,70);if(Math.abs(s.bank)>48)bT+=sgn(s.bank)*(Math.abs(s.bank)-48)*1.1;
+  if(s.T>0)bT+=Math.sin(s.t*1.7)*4*s.T;
+  s.bank+=(bT-s.bank)*Math.min(1,dt*1.3);
+  if(Math.abs(s.bank)>62){s.tm.sp2=(s.tm.sp2||0)+dt;if(s.tm.sp2>1.5){s.spiral=sgn(s.bank);s.spB=Math.abs(s.bank);s.spExit=null;log('Giro virou espiral');addErr('O giro virou espiral (direção não controlada)',10,'intoSpiral');}}else s.tm.sp2=0;}
+ // turn
+ if(s.stall==='spin')s.turn=s.spinDir*120;
+ else if(s.stall==='full')s.turn=Math.sin(s.t*1.3)*15;
+ else if(s.stall==='para')s.turn=0;
+ else s.turn=(9.81*Math.tan(s.bank*D2R)/Math.max(4,s.vEff/3.6))/D2R;
+ s.hdg=((s.hdg+s.turn*dt)%360+360)%360;
+ // pitch
+ let peq;if(s.stall==='full')peq=-40;else if(s.stall==='para')peq=-8;else if(s.stall==='spin')peq=-12;else peq=-6*bA+3*s.bar-10*s.front;
+ let damp=.6;if(s.pitch>3&&s.pv>0)damp+=bA*7;if(s.stall!=='none')damp=2.5;
+ s.pv+=(-4.2*(s.pitch-peq)-damp*s.pv)*dt;s.pitch+=s.pv*dt;
+ if(s.pitch>28&&s.stall==='none'&&s.front<.1&&!(s.tm.rf>0)){s.front=.55;s.tm.rf=3;s.pv=-30;AU.bang(.9);s.shake=1;log('Abatida não amortecida → frontal');addErr('Abatida não amortecida → novo fechamento frontal',10,'surge'+Math.floor(s.t/5));}
+ if(s.tm.rf>0)s.tm.rf-=dt;
+ // sink
+ let sink;
+ if(s.stall==='full')sink=8;else if(s.stall==='para')sink=4.6;else if(s.stall==='spin')sink=6.5;
+ else if(s.spiral)sink=3+Math.pow(Math.max(0,Math.abs(s.bank)-35)/40,1.5)*14;
+ else{sink=1.1+Math.pow(Math.max(0,bA-.35),2)*3.6+.9*s.bar+1.6*s.earsAmt+4*s.front+3.5*csum+2.5*s.crav.sev;
+  sink/=Math.pow(Math.cos(Math.min(70,Math.abs(s.bank))*D2R),1.5);}
+ s.vs=appr(s.vs,-sink+s.lift,4*dt);
+ s.g=s.stall==='none'?1/Math.cos(Math.min(80,Math.abs(s.bank))*D2R):1+Math.sin(s.t*3)*.2;
+}
+function reserveFlight(dt){
+ const s=S;const g=K.g||BTN.g;
+ if(g&&s.res.wingIn<1){s.res.wingIn=Math.min(1,s.res.wingIn+.45*dt);if(s.res.wingIn>=1){addGood('Recolheu a vela principal');log('Vela recolhida');}}
+ const dp=s.res.wingIn<1&&s.t-s.res.tOpen>7;
+ if(dp)addErr('Não recolheu a vela principal: risco de downplane (vela e reserva “brigando”)',12,'dp');
+ const sink=5.4+(s.res.wingIn<1?(dp?3.2:1.2):0);
+ s.vs=appr(s.vs,-sink,6*dt);s.bank=Math.sin(s.t*1.4)*(s.res.wingIn<1?14:5);s.turn=s.res.wingIn<1?22:4;
+ s.hdg=(s.hdg+s.turn*dt+360)%360;s.pitch=appr(s.pitch,0,30*dt);s.pv=0;s.V=appr(s.V,6,20*dt);s.vEff=s.V;s.g=1;
+}
+
+/* ================= PASSO / AVALIAÇÃO ================= */
+function reactionOk(){const s=S,[bL,bR]=s.b,bA=(bL+bR)/2;
+ switch(s.inc.type){
+  case 'asym':case 'cravat':{const open=-s.inc.side;const bo=open<0?bL:bR;return s.w*open>.3||bo>.28;}
+  case 'front':return Math.abs(bL-bR)<.2&&bA>=.2&&bA<=.62;
+  case 'full':return !s.forced&&bA<.3&&Math.abs(bL-bR)<.25;
+  case 'spin':return !s.forced&&bA<.35;
+  case 'para':return (bL<.06&&bR<.06)||s.barOn;
+  case 'spiral':return !s.forced&&(s.spEff||0)>.2;
+  case 'collision':return s.res.step>=1;
+ }return false;}
+function step(dt){
+ const s=S;s.t+=dt;
+ updateInputs(dt);
+ if(s.incAt!=null&&s.t>=s.incAt){s.incAt=null;trigger(s.sc.inc());}
+ turbStep(dt);
+ if(s.res.open)reserveFlight(dt);else physics(dt);
+ if(s.res.step===2&&!s.res.open&&s.t-s.res.tThrow>2.2){s.res.open=true;s.res.tOpen=s.t;s.stall='none';s.spiral=0;s.front=0;s.barOn=false;s.ears=false;s.rain=0;
+  banner(COARSE?'Reserva aberta! Recolher vela · PLF':'Reserva aberta! G: recolher a vela · F: PLF','sm',3,true);log('Reserva aberta');AU.bang(.6);}
+ s.alt+=s.vs*dt;
+ const vh=s.res.open?0:(s.stall==='none'?s.vEff:s.stall==='para'?3:1)/3.6;
+ const wv=s.wind.spd/3.6,wd=s.wind.dir*D2R,sh=Math.sin(s.hdg*D2R),ch=Math.cos(s.hdg*D2R);
+ const vx=sh*vh-Math.sin(wd)*wv,vy=ch*vh-Math.cos(wd)*wv;
+ s.x+=vx*dt;s.y+=vy*dt;s.gs=(vx*sh+vy*ch)*3.6;
+ s.shake=Math.max(0,s.shake-2*dt);
+ const unc=uncontrolled();s.uncT=unc?s.uncT+dt:0;
+ if(s.inc&&s.t0!=null){
+  if(s.react==null&&reactionOk()){s.react=s.t-s.t0;if(s.inc.type!=='collision')addGood(`Primeira reação correta em ${s.react.toFixed(1)} s`);}
+  if(!s.ctlDone){s.hdgCtl+=Math.abs(s.turn*dt);if(Math.abs(s.turn)<15&&s.stall==='none'&&!s.spiral){s.ctlT+=dt;if(s.ctlT>1.5)s.ctlDone=true;}else s.ctlT=0;}
+ }
+ if(s.t0!=null&&s.t>=s.t0){s.maxBank=Math.max(s.maxBank,Math.abs(s.bank));s.maxG=Math.max(s.maxG,s.g);}
+ if(s.res.step===0&&s.uncT>2&&s.alt<90&&s.alt>0)addErr('Sem controle abaixo de ~100 m e sem lançar a reserva',25,'missRes');
+ s.trT+=dt;if(s.trT>=.25){s.trT=0;s.trail.push([s.t,Math.max(0,s.alt)]);}
+ checkEnd(dt);
+}
+function checkEnd(dt){
+ const s=S,sc=s.sc;if(s.done)return;
+ if(s.alt<=0){s.alt=0;s.trail.push([s.t,0]);return landing();}
+ if(sc.goal==='recover'&&s.inc&&!s.res.step){
+  const st=s.c[0]<.02&&s.c[1]<.02&&s.front<.02&&s.crav.sev<.02&&s.stall==='none'&&!s.spiral&&Math.abs(s.bank)<15&&Math.abs(s.pitch)<10;
+  s.stT=st?s.stT+dt:0;if(s.stT>4)return finish('ok','Vela recuperada e voo estabilizado');}
+ if(sc.goal==='time'&&s.t>=sc.duration&&!s.res.step)return finish(s.c[0]+s.c[1]+s.front<.05&&s.stall==='none'?'ok':'partial','60 s de pilotagem ativa concluídos');
+ if(sc.goal==='rotor'&&!s.res.step){if(s.ridgeD>520)return finish('ok','Saiu do rotor');if(s.ridgeD<35)return finish('fail','Colidiu com o relevo a sotavento');}
+ if(sc.goal==='wind'&&-s.y>sc.lee)return finish('fail','Recuou até o sotavento do morro (zona de rotor)');
+}
+function landing(){
+ const s=S;
+ if(s.res.open){if(s.res.plf)return finish('ok','Pouso sob reserva com rolamento (PLF)');addErr('Tocou o solo sob reserva sem a posição de PLF',15);return finish('partial','Pouso sob reserva sem PLF');}
+ if(s.res.step===2)return finish('fail','A reserva não teve altura para abrir');
+ if(uncontrolled()||s.stall!=='none'||s.front>.2||s.c[0]+s.c[1]>.3||s.crav.sev>.2)return finish('fail','Impacto com a vela sem controle');
+ if(s.sc.goal==='wind')return finish('ok',`Pousou antes do sotavento (recuo de ${Math.max(0,Math.round(-s.y))} m)`);
+ if(s.sc.goal==='rotor')return finish('partial','Pousou dentro da área de rotor');
+ return finish('partial','Chegou ao solo antes de estabilizar totalmente');
+}
+function computeScore(o){
+ const s=S;let n=100;s.err.forEach(e=>n-=e.p);
+ const it=s.inc&&s.inc.type;
+ if(it&&it!=='collision'){if(s.react==null)n-=25;else if(s.react>3)n-=15;else if(s.react>1.5)n-=7;}
+ if(it==='asym'||it==='cravat'){if(s.hdgCtl>360)n-=20;else if(s.hdgCtl>180)n-=10;}
+ if(it==='collision'){if(!s.res.step)n-=40;else{const rt=s.res.tGrab-s.t0;if(rt>4)n-=15;else if(rt>2)n-=7;}}
+ if(s.sc.press&&s.ap.n)n-=Math.round((1-s.ap.ok/s.ap.n)*30);
+ if(o==='fail')n=Math.min(n,25);if(o==='partial')n=Math.min(n,70);
+ return clamp(Math.round(n),0,100);
+}
+function finish(o,msg){const s=S;if(s.done)return;s.done=true;s.outcome=o;s.msg=msg;log(msg,o==='fail'?'err':'ok');s.score=computeScore(o);
+ const H=hist();H.push({id:s.sc.id,name:s.sc.name,score:s.score,o,mode:s.mode,d:Date.now()});store.set('hist',H.slice(-80));
+ if(o==='fail'){s.shake=1.5;AU.bang(1.2);}
+ setTimeout(showDebrief,1000);}
+
+function chartSVG(){
+ const s=S,tr=s.trail;if(tr.length<3)return'';
+ const w=560,h=140,pl=40,pr=10,pt=10,pb=22,tmax=tr[tr.length-1][0]||1,amax=Math.max(10,...tr.map(p=>p[1]));
+ const X=t=>pl+(w-pl-pr)*t/tmax,Y=a=>pt+(h-pt-pb)*(1-a/amax);
+ const line=tr.map((p,i)=>(i?'L':'M')+X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('');
+ let m='';
+ const mk=(t,c,l)=>{if(t==null||t<0)return;const x=X(t);m+=`<line x1="${x}" x2="${x}" y1="${pt}" y2="${h-pb}" stroke="${c}" stroke-dasharray="3 3"/><text x="${Math.min(x+4,w-60)}" y="${pt+10}" fill="${c}" font-size="11">${l}</text>`;};
+ if(s.inc)mk(s.t0,'#FF7A1A','incidente');if(s.res.step)mk(s.res.tGrab,'#FF5A55','reserva');
+ return `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Altitude durante o voo">
+ <line x1="${pl}" x2="${w-pr}" y1="${Y(amax)}" y2="${Y(amax)}" stroke="#283746"/><line x1="${pl}" x2="${w-pr}" y1="${Y(amax/2)}" y2="${Y(amax/2)}" stroke="#283746"/><line x1="${pl}" x2="${w-pr}" y1="${Y(0)}" y2="${Y(0)}" stroke="#3A4B5C"/>
+ <text x="${pl-6}" y="${Y(amax)+4}" fill="#8A9CAB" font-size="11" text-anchor="end">${Math.round(amax)} m</text><text x="${pl-6}" y="${Y(amax/2)+4}" fill="#8A9CAB" font-size="11" text-anchor="end">${Math.round(amax/2)}</text><text x="${pl-6}" y="${Y(0)+4}" fill="#8A9CAB" font-size="11" text-anchor="end">0</text>
+ <text x="${pl}" y="${h-5}" fill="#8A9CAB" font-size="11">0 s</text><text x="${w-pr}" y="${h-5}" fill="#8A9CAB" font-size="11" text-anchor="end">${tmax.toFixed(0)} s</text>
+ <path d="${line} L${X(tmax)} ${Y(0)} L${X(0)} ${Y(0)}Z" fill="rgba(255,122,26,.12)"/><path d="${line}" fill="none" stroke="#FF9A4D" stroke-width="2"/>${m}</svg>`;
+}
+function showDebrief(){
+ const s=S,sc=s.sc;if(!SIM.open||!s)return;
+ const oc={ok:['Recuperou','good'],partial:['Parcial','mid'],fail:['Não recuperou','badc']}[s.outcome];
+ const pk=s.inc?INC_PROC[s.inc.type]:sc.proc;const P=PROC[pk];
+ const M=[];
+ if(s.inc)M.push(['Reação',s.react!=null?s.react.toFixed(1)+' s':'—']);
+ M.push(['Altitude perdida',Math.max(0,Math.round(s.altAt0-s.alt))+' m']);
+ if(s.inc&&['asym','cravat','front'].includes(s.inc.type))M.push(['Giro até controlar',Math.round(s.hdgCtl)+'°']);
+ M.push(['Inclinação máx',Math.round(s.maxBank)+'°'],['G máx',s.maxG.toFixed(1)],['Duração',s.t.toFixed(0)+' s']);
+ if(sc.press&&s.ap.n)M.push(['Pilotagem ativa',`${s.ap.ok}/${s.ap.n}`]);
+ if(sc.goal==='wind')M.push(['Recuo',Math.max(0,Math.round(-s.y))+' m']);
+ const hdr=s.mode==='eval'?'Avaliação':'Guiado';
+ $('#debBox').innerHTML=`<div class="eyebrow">${esc(sc.name)} · ${hdr}</div>
+ <div class="score"><span class="n ${scoreCls(s.score)}">${s.score}</span><div><h2 style="margin:0" class="${oc[1]}">${oc[0]}</h2><p style="margin:0">${esc(s.msg)}</p></div></div>
+ <div class="mgrid">${M.map(m=>`<div><span>${m[0]}</span><b>${m[1]}</b></div>`).join('')}</div>
+ ${chartSVG()}
+ ${s.good.length?`<h4>O que você fez bem</h4><ul>${s.good.map(g=>`<li class="g">${esc(g)}</li>`).join('')}</ul>`:''}
+ ${s.err.length?`<h4>O que corrigir</h4><ul>${s.err.map(e=>`<li class="e">${esc(e.m)} <span style="opacity:.6">(−${e.p})</span></li>`).join('')}</ul>`:''}
+ ${s.inc&&s.react==null&&s.inc.type!=='collision'?'<p class="badc" style="font-size:14px">Não houve a reação correta ao incidente (−25).</p>':''}
+ ${P?`<h4>Procedimento de referência — ${P.t}</h4><ul>${P.a.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}
+ <div class="acts"><button class="btn" id="dAgain">Voar de novo</button><button class="btn ghost" id="dMenu">Menu</button></div>`;
+ $('#ovDeb').hidden=false;$('#hint').hidden=true;
+ $('#dAgain').addEventListener('click',()=>openSim(sc));$('#dMenu').addEventListener('click',closeSim);
+}
+
+/* ================= DICAS (modo guiado) ================= */
+const kb=!COARSE;
+const KB=t=>`<kbd>${t}</kbd>`;
+const bk=side=>kb?KB(side<0?'←':'→'):(side<0?'faixa E':'faixa D');
+const wk=side=>kb?KB(side<0?'Z':'C'):(side<0?'◀ Peso':'Peso ▶');
+const upk=()=>kb?KB('↑'):'Mãos em cima';
+const bothk=()=>kb?KB('↓'):'2 freios';
+function activeIssue(){const s=S;if(s.stall==='spin')return'spin';if(s.stall==='full')return'full';if(s.stall==='para')return'para';if(s.spiral)return'spiral';if(s.crav.sev>.02)return'cravat';if(s.c[0]>.02||s.c[1]>.02)return'asym';if(s.front>.02)return'front';if(s.pitch>8&&s.pv>0)return'surge';if(['turb','rotor','wind'].includes(s.sc.proc))return s.sc.proc;return s.inc?'recov':'calm';}
+function hintData(){
+ const s=S;
+ if(s.res.step===1)return{t:'Alça na mão',st:[`PUXE e LANCE com força para o lado livre — ${kb?KB('R'):'Reserva'}`],n:0,alarm:1};
+ if(s.res.step===2&&!s.res.open)return{t:'Reserva saindo',st:['Aguarde a abertura','Prepare-se para recolher a vela'],n:0};
+ if(s.res.open)return{t:'Sob reserva',st:[`Recolha a vela principal — segure ${kb?KB('G'):'Recolher vela'}`,`Posição de PLF antes do solo — ${kb?KB('F'):'PLF'}`,'Pés e joelhos juntos, olhe o horizonte, role ao tocar'],n:s.res.wingIn<1?0:(s.res.plf?2:1)};
+ if(s.collided)return{t:'Velas enroscadas',st:[`Sem controle possível: RESERVA — ${kb?KB('R')+' '+KB('R'):'Reserva (2 toques)'}`],n:0,alarm:1};
+ if(s.alt<200&&s.uncT>1.5)return{t:'Baixo e sem controle',st:[`LANCE A RESERVA — ${kb?KB('R')+' '+KB('R'):'Reserva (2 toques)'}`],n:0,alarm:1};
+ for(let i=0;i<2;i++)if(s.pl[i]){const sd=i?1:-1;return{t:'Freio '+(sd<0?'esquerdo':'direito')+' ficou leve!',st:[`Freie o lado ${lado(sd)} agora ${bk(sd)} para manter a pressão`],n:0,alarm:1};}
+ switch(activeIssue()){
+  case 'asym':{const side=s.c[0]>=s.c[1]?-1:1,open=-side,ctl=Math.abs(s.turn)<22;
+   return{t:`Fechamento — lado ${lado(side)}`,st:[`Direção: peso para o lado ${lado(open)} ${wk(open)} + freio ${lado(open)} dosado ${bk(open)}`,'Não passe da linha vermelha tracejada no freio (negativa)',`Direção controlada: bombada longa no lado ${lado(side)} ${bk(side)} (fundo e solta)`],n:ctl?2:0};}
+  case 'front':return{t:'Fechamento frontal',st:[`Sem freio fundo. No máximo freio leve e simétrico ${bothk()} (toque curto)`,'A vela escola costuma reabrir sozinha',`Ao reabrir ela avança: amorteça com os dois freios ${bothk()}`],n:0};
+  case 'cravat':{const side=s.crav.side,open=-side,ctl=Math.abs(s.turn)<30;
+   return{t:`Gravata — lado ${lado(side)}`,st:[`Direção: peso ${lado(open)} ${wk(open)} + freio ${lado(open)} dosado ${bk(open)}`,`Puxe o estabilizador ${lado(side)} ${kb?KB(side<0?'Q':'E'):'Estabilo '+(side<0?'E':'D')}`,`Bombeie o lado ${lado(side)} ${bk(side)}`,'Sem controle e baixo? Reserva'],n:!ctl&&!s.crav.stab?0:(!s.crav.stab?1:2)};}
+  case 'full':return{t:'Estol total',st:[`Solte os DOIS freios juntos, simétrico ${upk()}`,`A vela vai avançar forte: amorteça ${bothk()}`,'Volte ao voo reto'],n:0};
+  case 'para':return{t:'Parachutal',st:[`Mãos TOTALMENTE em cima — segure ${upk()}`,`Acelerador ${kb?KB('Espaço'):'Acelerador'}`,'Não freie: vira estol total'],n:(s.b[0]<.06&&s.b[1]<.06)?1:0};
+  case 'spin':return{t:'Negativa',st:[`SOLTE os freios agora ${upk()}`,'Prepare-se para a abatida e um possível fechamento','Amorteça e volte ao voo reto'],n:0};
+  case 'spiral':{const d=s.spiral,out=-d;return{t:'Espiral',st:[`Solte aos poucos o freio de dentro (${lado(d)})`,`Peso para fora da curva ${wk(out)}`,`Se não sair: freie o lado de fora ${bk(out)}`,'Saia devagar — soltar tudo de uma vez gera abatida forte'],n:s.forced?0:1};}
+  case 'surge':return{t:'Abatida',st:[`A vela passou à frente: freie os dois lados ${bothk()}`,'Quando ela voltar para cima da cabeça, solte'],n:0};
+  case 'turb':return{t:'Pilotagem ativa',st:[`Vela recua (vai para trás): suba as mãos ${upk()}`,`Vela avança: freie para segurar ${bothk()}`,'Freio ficou leve de um lado: freie esse lado na hora'],n:-1};
+  case 'rotor':return{t:'Rotor',st:['Vire e afaste-se do morro (rumo S) pelo caminho mais curto','Pilotagem ativa firme, sem acelerador'],n:Math.abs(((s.hdg-180+540)%360)-180)<40?1:0};
+  case 'wind':return{t:'Recuando com vento forte',st:['Aproe ao vento (rumo N)',`Acelerador ${kb?KB('Espaço'):'Acelerador'}`,`Ainda recuando? Orelhas + acelerador ${kb?KB('O'):'Orelhas'}`,'Chegue ao chão antes do sotavento'],n:!s.barOn?1:(!s.ears?2:3)};
+  case 'recov':return{t:'Estabilize',st:['Voo reto, vela sobre a cabeça','Freios em contato leve'],n:0};
+  default:return{t:'Voo normal',st:['Voo reto, freios em contato leve','Atenção: o incidente pode vir a qualquer momento'],n:-1};
+ }
+}
+let lastHint='';
+function renderHint(){const el=$('#hint');if(S.mode!=='guided'||!SIM.started||S.done){el.hidden=true;return}
+ const d=hintData();el.hidden=false;
+ const html=`<h5>${d.t}</h5><ol>${d.st.map((x,i)=>`<li class="${d.n<0?'':i<d.n?'done':i===d.n?'now':''}">${x}</li>`).join('')}</ol>`;
+ if(html!==lastHint){el.innerHTML=html;el.className=d.alarm?'alarm':'';lastHint=html;}}
+
+/* ================= RENDER ================= */
+const cv=$('#cv'),ctx=cv.getContext('2d');let W=800,H=600,DPR=1;
+function resize(){const r=cv.getBoundingClientRect();DPR=Math.min(2,window.devicePixelRatio||1);W=Math.max(1,r.width);H=Math.max(1,r.height);cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);}
+addEventListener('resize',()=>{if(SIM.open)resize()});
+let CAM={};
+function setCam(){const a=(6-clamp(S.pitch,-40,40)*.22)*D2R;CAM={sh:Math.sin(S.hdg*D2R),ch:Math.cos(S.hdg*D2R),ca:Math.cos(a),sa:Math.sin(a),f:Math.min(H*.95,W*.8),a};}
+function proj(wx,wy,wz){const dx=wx-S.x,dy=wy-S.y,dz=wz-S.alt;const xr=dx*CAM.ch-dy*CAM.sh,zf=dx*CAM.sh+dy*CAM.ch;const d=zf*CAM.ca-dz*CAM.sa,up=zf*CAM.sa+dz*CAM.ca;return[CAM.f*xr/d,-CAM.f*up/d,d];}
+const FIELD=[[110,139,74],[124,154,85],[95,125,63],[138,154,91],[156,143,94],[79,110,58],[163,160,103],[102,132,70]];
+const HAZE=[178,198,206],SEA=[50,106,146],SAND=[214,204,160],COAST=-1800;
+function hsh(i,j){let h=(i*374761393+j*668265263)|0;h=Math.imul(h^(h>>>13),1274126177);return(h^(h>>>16))>>>0;}
+const CLOUDS=[[15,9,1],[70,13,1.4],[130,8,.9],[200,11,1.2],[260,10,1],[320,14,1.3],[100,21,.8],[345,6,.8]];
+function poly(pts){ctx.beginPath();ctx.moveTo(pts[0][0],pts[0][1]);for(let i=1;i<pts.length;i++)ctx.lineTo(pts[i][0],pts[i][1]);ctx.closePath();}
+function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+
+function drawWorld(){
+ const s=S;setCam();const f=CAM.f,hy=-f*Math.tan(CAM.a),R=Math.hypot(W,H);
+ ctx.save();let sx=0,sy=0;if(s.shake>0&&!RM){sx=(Math.random()-.5)*s.shake*10;sy=(Math.random()-.5)*s.shake*10;}
+ ctx.translate(W/2+sx,H/2+sy);ctx.rotate(-s.bank*D2R*.9);
+ const g=ctx.createLinearGradient(0,hy-R,0,hy);g.addColorStop(0,'#2C62A0');g.addColorStop(.72,'#78A8D3');g.addColorStop(1,'#CADDEA');
+ ctx.fillStyle=g;ctx.fillRect(-R,hy-R*1.8,2*R,R*1.8+1);
+ for(const[b,e,sz]of CLOUDS){const d=((b-s.hdg+540)%360)-180;if(Math.abs(d)>70)continue;const x=f*Math.tan(d*D2R),y=hy-f*Math.tan(e*D2R),r=f*.055*sz;
+  ctx.fillStyle='rgba(255,255,255,.9)';for(const[a,bb,c]of[[0,0,1],[-.95,.28,.7],[1,.25,.75],[.2,-.42,.72],[-.4,-.25,.6]]){ctx.beginPath();ctx.ellipse(x+a*r,y+bb*r,c*r*1.1,c*r*.8,0,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='rgba(206,216,228,.9)';ctx.beginPath();ctx.ellipse(x,y+r*.45,r*1.9,r*.28,0,0,Math.PI*2);ctx.fill();}
+ for(let x=-R;x<R;x+=8){const b=s.hdg+Math.atan(x/f)/D2R;const sea=s.x+Math.sin(b*D2R)*6000<COAST;ctx.fillStyle=sea?'#4E86A8':'#90A48D';ctx.fillRect(x,hy,9,R*1.8);}
+ ctx.beginPath();ctx.moveTo(-R,hy+1);
+ for(let x=-R;x<=R;x+=6){const b=s.hdg+Math.atan(x/f)/D2R;let e=0;if(s.x+Math.sin(b*D2R)*6000>COAST+400){e=1.3+1.1*Math.sin(b*3*D2R+1)+.8*Math.sin(b*7*D2R+2)+.45*Math.sin(b*13*D2R+.5);e=Math.max(0,Math.max(.15,e)-s.alt/900);}ctx.lineTo(x,hy-f*Math.tan(e*D2R));}
+ ctx.lineTo(R,hy+1);ctx.closePath();ctx.fillStyle='#6E8A87';ctx.fill();
+ const hz=ctx.createLinearGradient(0,hy-14,0,hy+30);hz.addColorStop(0,'rgba(210,225,235,0)');hz.addColorStop(.35,'rgba(210,225,235,.55)');hz.addColorStop(1,'rgba(210,225,235,0)');ctx.fillStyle=hz;ctx.fillRect(-R,hy-14,2*R,44);
+ // ground cells
+ const CS=200,N=12,ci=Math.floor(s.x/CS),cj=Math.floor(s.y/CS),n=2*N+2,P=new Array(n*n);
+ for(let a=0;a<n;a++)for(let b=0;b<n;b++)P[a*n+b]=proj((ci-N+a)*CS,(cj-N+b)*CS,0);
+ const cells=[];
+ for(let a=0;a<n-1;a++)for(let b=0;b<n-1;b++){const p1=P[a*n+b],p2=P[(a+1)*n+b],p3=P[(a+1)*n+b+1],p4=P[a*n+b+1];if(p1[2]<2||p2[2]<2||p3[2]<2||p4[2]<2)continue;
+  const i=ci-N+a,j=cj-N+b,cx=(i+.5)*CS,cy=(j+.5)*CS;cells.push([Math.hypot(cx-s.x,cy-s.y),i,j,p1,p2,p3,p4,cx,cy]);}
+ cells.sort((u,v)=>v[0]-u[0]);
+ for(const[d,i,j,p1,p2,p3,p4,cx,cy]of cells){const hh=hsh(i,j);const land=cx>=COAST+140;
+  const col=cx<COAST?SEA:!land?SAND:FIELD[hh%FIELD.length];const t=clamp(d/2800,0,.8);
+  ctx.fillStyle=`rgb(${col[0]+(HAZE[0]-col[0])*t|0},${col[1]+(HAZE[1]-col[1])*t|0},${col[2]+(HAZE[2]-col[2])*t|0})`;
+  poly([p1,p2,p3,p4]);ctx.fill();if(land&&d<1500){ctx.strokeStyle='rgba(38,50,28,.3)';ctx.lineWidth=.8;ctx.stroke();}
+  if(land&&d<1000&&hh%3===0){for(let k=0;k<3;k++){const tx=cx+((hh>>(k*4))%120)-60,ty=cy+((hh>>(k*4+2))%120)-60;const pb=proj(tx,ty,0),pt=proj(tx,ty,14);if(pb[2]<3||pt[2]<3)continue;const r=Math.max(1,(pb[1]-pt[1])*.5);ctx.fillStyle='#2E4526';ctx.beginPath();ctx.ellipse(pt[0],(pt[1]+pb[1])/2,r,r*1.05,0,0,Math.PI*2);ctx.fill();}}}
+ // landing target
+ const lz=[];let ok=true;for(let k=0;k<20;k++){const a=k/20*Math.PI*2;const p=proj(300+Math.cos(a)*30,700+Math.sin(a)*30,0);if(p[2]<3){ok=false;break}lz.push(p);}
+ if(ok){ctx.fillStyle='rgba(235,240,230,.85)';poly(lz);ctx.fill();const c=proj(300,700,0);ctx.fillStyle='#E0413B';ctx.beginPath();ctx.arc(c[0],c[1],Math.max(1.5,lz[0][0]-c[0])*.35,0,Math.PI*2);ctx.fill();}
+ // ridge
+ const rg=s.sc.ridge;if(rg){for(let x=-2400;x<2400;x+=100){const q=[proj(x,rg.y,0),proj(x+100,rg.y,0),proj(x+100,rg.y+160,rg.h),proj(x,rg.y+160,rg.h)];if(q.some(p=>p[2]<3))continue;ctx.fillStyle=(x/100)%2?'#3D5A37':'#42603B';poly(q);ctx.fill();}}
+ ctx.restore();
+}
+function wingColor(k,N,u,dark){const au=Math.abs(u);let c=au>.78?[34,58,98]:au<.08?[240,236,226]:(k%2?[230,104,28]:[244,120,34]);const m=1-clamp(dark,0,.8);return`rgb(${c[0]*m|0},${c[1]*m|0},${c[2]*m|0})`;}
+function drawWing(o){
+ const s=S;o=Object.assign({ox:0,oy:0,rot:0,sc:1,crumple:0,brakes:true},o||{});
+ const span=Math.min(W*.44,H*1.05)*o.sc,py=clamp(s.pitch,-60,50)*H*.0065;
+ const apexY=H*.05+py,dropH=H*.27*o.sc,A=1.15,sA=Math.sin(A),cA=1-Math.cos(A),tt=s.t;
+ let jit=o.crumple*.02+(s.stall==='full'?.018:0)+s.front*.018;
+ ctx.save();ctx.translate(W/2+o.ox,apexY+o.oy);
+ ctx.rotate(o.rot+(s.stall==='spin'?s.spinDir*.22+Math.sin(tt*6)*.04:0)+(s.stall==='full'?Math.sin(tt*2.3)*.1:0));
+ const base=u=>[span*Math.sin(u*A)/sA,dropH*(1-Math.cos(u*A))/cA];
+ const Nn=28,pts=[];const cL=s.c[0],cR=s.c[1];const cs=s.crav.sev>.02?s.crav.side:0,cx=s.crav.sev*.34;
+ for(let k=0;k<=Nn;k++){const u=-1+2*k/Nn;let p=base(u),th=H*.07*o.sc*(1-.45*u*u),dark=0,jj=jit;
+  const fl=-1+2*cL,fr=1-2*cR;
+  if(cL>.01&&u<fl){const q=base(fl),d=fl-u;p=[q[0]+(q[0]-p[0])*.3,q[1]+(q[1]-p[1])*.3+H*.09*d];th*=.45;dark=.45;jj+=.01;}
+  if(cR>.01&&u>fr){const q=base(fr),d=u-fr;p=[q[0]+(q[0]-p[0])*.3,q[1]+(q[1]-p[1])*.3+H*.09*d];th*=.45;dark=.45;jj+=.01;}
+  if(cs&&(cs<0?u<-1+cx*2:u>1-cx*2)){const kk=base(cs*.74);const K=[kk[0],kk[1]+H*.11];p=[p[0]+(K[0]-p[0])*.72,p[1]+(K[1]-p[1])*.72];th*=.5;dark=Math.max(dark,.35);jj+=.006;}
+  for(let i=0;i<2;i++){const pl=s.pl[i];if(pl&&(i?u>.5:u<-.5)){const pr=clamp(pl.t/1.3,0,1);jj+=.007*pr;th*=1-.25*pr;}}
+  if(s.front>0){p[1]+=s.front*H*.1*(1-.3*u*u);th*=1-.72*s.front;dark+=s.front*.3;}
+  th*=1-.6*o.crumple;dark+=o.crumple*.25;
+  if(jj>0&&!RM){p=[p[0]+Math.sin(tt*23+u*11)*H*jj,p[1]+Math.cos(tt*19+u*7)*H*jj];}
+  pts.push({x:p[0],y:p[1],th,dark,u});}
+ for(let k=0;k<=Nn;k++){const a=pts[Math.max(0,k-1)],b=pts[Math.min(Nn,k+1)];let tx=b.x-a.x,ty=b.y-a.y;const l=Math.hypot(tx,ty)||1;let nx=-ty/l,ny=tx/l;if(ny<0){nx=-nx;ny=-ny}pts[k].nx=nx;pts[k].ny=ny;}
+ const rY=H*.99-apexY-o.oy,rX=W*.13;
+ ctx.strokeStyle='rgba(25,25,25,.45)';ctx.lineWidth=.8;ctx.beginPath();
+ for(let k=0;k<=Nn;k+=2){const p=pts[k];const lx=p.x+p.nx*p.th,ly=p.y+p.ny*p.th;ctx.moveTo(lx,ly);ctx.lineTo(p.u<0?-rX:rX,rY);}ctx.stroke();
+ for(let k=0;k<Nn;k++){const a=pts[k],b=pts[k+1];ctx.fillStyle=wingColor(k,Nn,(a.u+b.u)/2,(a.dark+b.dark)/2);
+  poly([[a.x,a.y],[b.x,b.y],[b.x+b.nx*b.th,b.y+b.ny*b.th],[a.x+a.nx*a.th,a.y+a.ny*a.th]]);ctx.fill();ctx.strokeStyle='rgba(0,0,0,.22)';ctx.lineWidth=.7;ctx.stroke();}
+ ctx.strokeStyle='rgba(255,255,255,.35)';ctx.lineWidth=1.2;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
+ if(o.brakes){for(let i=0;i<2;i++){const p=pts[i?Nn-1:1],sd=i?1:-1;const hx=sd*W*.2,hy2=H*(.72+s.b[i]*.2)-apexY-o.oy;
+  ctx.strokeStyle='rgba(250,205,90,.8)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(p.x+p.nx*p.th,p.y+p.ny*p.th);ctx.lineTo(hx,hy2);ctx.stroke();
+  ctx.fillStyle='#1B1F24';rrect(hx-9,hy2,18,26,5);ctx.fill();ctx.fillStyle='#FF7A1A';rrect(hx-9,hy2,18,6,3);ctx.fill();}}
+ if(cs){const kk=base(cs*.74);ctx.strokeStyle='rgba(20,20,20,.7)';ctx.lineWidth=1.4;ctx.beginPath();for(let k=0;k<6;k++){const a=tt*3+k;ctx.moveTo(kk[0]+Math.cos(a)*H*.02,kk[1]+H*.11+Math.sin(a)*H*.015);ctx.lineTo(kk[0]-Math.cos(a)*H*.02,kk[1]+H*.11-Math.sin(a)*H*.015);}ctx.stroke();}
+ ctx.restore();
+}
+function drawReserve(){const s=S,cx=W/2+Math.sin(s.t*1.4)*W*.02,r=Math.min(W*.2,H*.28),cy=H*.02;
+ ctx.save();ctx.strokeStyle='rgba(30,30,30,.5)';ctx.lineWidth=.8;ctx.beginPath();for(let k=0;k<=8;k++){const a=Math.PI+k/8*Math.PI;ctx.moveTo(cx+Math.cos(a)*r,cy+r*.55);ctx.lineTo(W/2,H*.98);}ctx.stroke();
+ for(let k=0;k<8;k++){const a1=Math.PI+k/8*Math.PI,a2=Math.PI+(k+1)/8*Math.PI;ctx.fillStyle=k%2?'#F2F2EE':'#D8342E';ctx.beginPath();ctx.moveTo(cx,cy-r*.25);ctx.lineTo(cx+Math.cos(a1)*r,cy+r*.55);ctx.quadraticCurveTo(cx+Math.cos((a1+a2)/2)*r*1.05,cy+r*.62,cx+Math.cos(a2)*r,cy+r*.55);ctx.closePath();ctx.fill();}
+ ctx.restore();}
+function drawCompass(){const s=S,cw=Math.min(300,W*.34),x0=W/2,y0=10,h=30;
+ ctx.save();ctx.fillStyle='rgba(8,13,18,.72)';rrect(x0-cw/2,y0,cw,h,8);ctx.fill();ctx.clip();
+ const CN={0:'N',45:'NE',90:'L',135:'SE',180:'S',225:'SO',270:'O',315:'NO'};ctx.textAlign='center';ctx.font='600 13px "Barlow Condensed",sans-serif';
+ for(let d=Math.floor((s.hdg-50)/5)*5;d<=s.hdg+50;d+=5){const x=x0+(d-s.hdg)/45*cw/2,dd=((d%360)+360)%360;ctx.fillStyle='rgba(255,255,255,.55)';ctx.fillRect(x-.5,y0+h-(dd%10?5:9),1,dd%10?5:9);
+  if(CN[dd]!=null){ctx.fillStyle=dd===0?'#FF9A4D':'#fff';ctx.fillText(CN[dd],x,y0+15);}else if(dd%30===0){ctx.fillStyle='rgba(255,255,255,.6)';ctx.font='500 11px "Barlow Condensed",sans-serif';ctx.fillText(dd,x,y0+14);ctx.font='600 13px "Barlow Condensed",sans-serif';}}
+ ctx.restore();ctx.fillStyle='#FF7A1A';ctx.beginPath();ctx.moveTo(x0-6,y0+h+7);ctx.lineTo(x0+6,y0+h+7);ctx.lineTo(x0,y0+h);ctx.fill();}
+const RAIN=Array.from({length:110},()=>[Math.random(),Math.random(),.6+Math.random()*.8]);
+function render(){
+ if(!S)return;const s=S;ctx.setTransform(DPR,0,0,DPR,0,0);
+ drawWorld();
+ if(s.stall==='para'||s.rain>0){ctx.strokeStyle='rgba(225,235,245,.35)';ctx.lineWidth=1;ctx.beginPath();for(const r of RAIN){const x=((r[0]*W+s.t*40)%W),y=((r[1]*H+s.t*700*r[2])%H);ctx.moveTo(x,y);ctx.lineTo(x-3,y+16);}ctx.stroke();}
+ if(s.res.open){drawReserve();if(s.res.wingIn<1)drawWing({ox:W*.28*(1-s.res.wingIn),oy:H*.28+s.res.wingIn*H*.45,rot:.7,sc:.6*(1-s.res.wingIn*.7),crumple:.4+s.res.wingIn*.6,brakes:false});}
+ else drawWing();
+ if(s.g>2.3){const a=clamp((s.g-2.3)*.35,0,.75);const vg=ctx.createRadialGradient(W/2,H/2,Math.min(W,H)*.2,W/2,H/2,Math.hypot(W,H)*.6);vg.addColorStop(0,'rgba(0,0,0,0)');vg.addColorStop(1,`rgba(0,0,0,${a})`);ctx.fillStyle=vg;ctx.fillRect(0,0,W,H);}
+ drawCompass();
+}
+
+/* ================= HUD ================= */
+let hudT=0;const ZON=[$('#zl'),$('#zr')];
+function hud(){
+ if(!S)return;const s=S;
+ for(let i=0;i<2;i++){const z=ZON[i],gi=z.querySelector('i'),gb=z.querySelector('b');gi.style.height=(s.b[i]*100).toFixed(1)+'%';
+  const thr=s['thr'+i];const showThr=s.mode==='guided'&&thr!=null&&thr<.8&&!s.res.open;gb.style.display=showThr?'block':'none';if(showThr)gb.style.top=(thr*100).toFixed(1)+'%';
+  z.classList.toggle('pl',!!s.pl[i]);z.classList.toggle('showpl',s.mode==='guided');}
+ const now=performance.now();if(now-hudT<90)return;hudT=now;
+ $('#vAlt').innerHTML=Math.max(0,Math.round(s.alt))+'<small>m</small>';
+ const v=$('#vVs');v.innerHTML=(s.vs>=0?'+':'−')+Math.abs(s.vs).toFixed(1)+'<small>m/s</small>';v.className='v '+(s.vs>.3?'up':s.vs<-2.5?'dn':'');
+ $('#vSpd').innerHTML=Math.round(s.vEff)+'<small>km/h</small>';$('#vGs').innerHTML=Math.round(s.gs)+'<small>km/h</small>';$('#vG').textContent=s.g.toFixed(1);
+ const kx=$('#kX'),vx=$('#vX');let xs=null;
+ if(s.sc.goal==='wind')xs=['Recuo',`${Math.max(0,Math.round(-s.y))} / ${s.sc.lee} m`];
+ else if(s.sc.goal==='rotor')xs=['Morro',`${Math.max(0,Math.round(s.ridgeD))} m`];
+ else if(s.sc.goal==='time')xs=['Resta',`${Math.max(0,Math.ceil(s.sc.duration-s.t))} s`];
+ if(s.sc.wind&&xs)xs[1]+=` · vento ${Math.round(s.wind.spd)}`;
+ kx.hidden=vx.hidden=!xs;if(xs){kx.textContent=xs[0];vx.textContent=xs[1];}
+ const m=Math.floor(s.t/60),sec=Math.floor(s.t%60);$('#tmr').textContent=m+':'+String(sec).padStart(2,'0');
+ const pad=a=>$(`[data-act="${a}"]`);pad('bar').classList.toggle('on',s.barOn);pad('ears').classList.toggle('on',s.ears);pad('plf').classList.toggle('on',s.res.plf);pad('res').classList.toggle('on',s.res.step>0);
+ renderHint();
+}
+function flashPad(a){const b=$(`[data-act="${a}"]`);if(!b)return;b.classList.add('flash');setTimeout(()=>b.classList.remove('flash'),300);}
+
+/* ================= ENTRADAS ================= */
+const CK=new Set(['arrowleft','arrowright','arrowup','arrowdown','a','d','w','s','z','c','g']);
+function canAct(){return S&&SIM.open&&SIM.started&&!SIM.paused&&!S.done}
+addEventListener('keydown',e=>{
+ if(!SIM.open)return;let k=e.key.toLowerCase();if(k===' ')k='space';
+ if(['arrowleft','arrowright','arrowup','arrowdown','space'].includes(k))e.preventDefault();
+ if(k==='escape'||k==='p'){togglePause();return}
+ if(!SIM.started&&k==='enter'){startFlight();return}
+ if(!canAct())return;
+ if(CK.has(k)){K[k]=true;userInput();}
+ if(e.repeat)return;
+ switch(k){case'space':toggleBar();flashPad('bar');break;case'o':toggleEars();flashPad('ears');break;case'q':stabilo(-1);break;case'e':stabilo(1);break;case'r':reservePress();flashPad('res');break;case'f':togglePLF();break;}
+});
+addEventListener('keyup',e=>{let k=e.key.toLowerCase();if(k===' '){k='space';e.preventDefault();}K[k]=false;});
+addEventListener('blur',()=>{for(const k in K)K[k]=false;for(const k in BTN)BTN[k]=false;TOUCH[0]=TOUCH[1]=null;});
+ZON.forEach((el,i)=>{const set=e=>{const g=el.querySelector('.gauge').getBoundingClientRect();TOUCH[i]=clamp((e.clientY-g.top)/g.height,0,1);};
+ el.addEventListener('pointerdown',e=>{if(!canAct())return;e.preventDefault();try{el.setPointerCapture(e.pointerId)}catch(_){ }set(e);userInput();});
+ el.addEventListener('pointermove',e=>{if(TOUCH[i]!=null)set(e);});
+ const end=()=>{TOUCH[i]=null};el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);});
+$$('[data-hold]').forEach(b=>{const k=b.dataset.hold;
+ const on=e=>{e.preventDefault();if(!canAct())return;BTN[k]=true;b.classList.add('on');userInput();};const off=()=>{BTN[k]=false;b.classList.remove('on');};
+ b.addEventListener('pointerdown',on);b.addEventListener('pointerup',off);b.addEventListener('pointercancel',off);b.addEventListener('pointerleave',off);b.addEventListener('contextmenu',e=>e.preventDefault());});
+$$('[data-act]').forEach(b=>b.addEventListener('click',()=>{b.blur();if(!canAct())return;const a=b.dataset.act;
+ if(a==='bar')toggleBar();else if(a==='ears')toggleEars();else if(a==='stabL')stabilo(-1);else if(a==='stabR')stabilo(1);else if(a==='res')reservePress();else if(a==='plf')togglePLF();}));
+$('#sim').addEventListener('contextmenu',e=>e.preventDefault());
+
+/* ================= CICLO ================= */
+function loop(ts){if(!SIM.open){SIM.raf=0;return}
+ const dt=Math.min(.05,(ts-SIM.last)/1000||.016);SIM.last=ts;
+ if(SIM.started&&!SIM.paused&&S&&!S.done){let r=dt;while(r>1e-6){const h=Math.min(r,1/120);step(h);r-=h;if(S.done)break;}}
+ render();hud();AU.update(dt,S?S.vEff:0,S?S.vs:0,SIM.started&&!SIM.paused&&S&&!S.done);
+ SIM.raf=requestAnimationFrame(loop);}
+function startBox(sc){
+ const goal={recover:'Recuperar a vela e estabilizar: 4 s de voo reto com a vela aberta.',survive:'Agir rápido e chegar ao chão em segurança.',time:'Aguentar 60 s de turbulência com o mínimo de fechamentos.',rotor:'Afastar-se mais de 520 m do morro sem colidir.',wind:'Chegar ao chão antes de recuar 260 m.'}[sc.goal];
+ const keys=COARSE?`<span>Faixas laterais</span><span>Freios — arraste o polegar para baixo</span><span>Mãos em cima</span><span>Botão central (segure)</span><span>Peso</span><span>◀ Peso / Peso ▶ (segure)</span><span>Bombada</span><span>Freio fundo e solta em até 2 s</span>`
+  :`<kbd>← →</kbd><span>Freio esquerdo / direito (segure = mais fundo)</span><kbd>↓</kbd><span>Os dois freios</span><kbd>↑</kbd><span>Mãos totalmente em cima</span><kbd>Z C</kbd><span>Peso esquerda / direita</span><kbd>Espaço · O</kbd><span>Acelerador · orelhas</span><kbd>Q E</kbd><span>Estabilo esquerdo / direito</span><kbd>R R · G · F</kbd><span>Reserva · recolher vela · PLF</span>`;
+ $('#startBox').innerHTML=`<div class="eyebrow">${S.mode==='guided'?'Modo guiado':'Modo avaliação'} · ${sc.alt} m</div><h2>${sc.name}</h2><p>${sc.brief}</p><h4>Objetivo</h4><p>${goal}</p>${S.mode==='eval'?'<p style="color:var(--warn)">Sem avisos nem dicas. O incidente vem num momento aleatório.</p>':''}<h4>Comandos</h4><div class="keys">${keys}</div><p class="rot" style="margin-top:10px">Gire o celular para a horizontal e use fone de ouvido.</p><div class="acts"><button class="btn" id="goBtn">Iniciar voo</button><button class="btn ghost" id="backBtn">Voltar</button></div>`;
+ $('#goBtn').addEventListener('click',startFlight);$('#backBtn').addEventListener('click',closeSim);
+}
+function clearInputs(){for(const k in K)K[k]=false;for(const k in BTN)BTN[k]=false;TOUCH[0]=TOUCH[1]=null;PUMP.forEach(p=>p.deep=false);$$('.pad').forEach(b=>b.classList.remove('on'));}
+function openSim(sc){
+ S=newState(sc);clearInputs();SIM.open=true;SIM.started=false;SIM.paused=false;lastHint='';
+ $('#sim').hidden=false;$('#ovStart').hidden=false;$('#ovPause').hidden=true;$('#ovDeb').hidden=true;$('#hint').hidden=true;$('#banner').className='';
+ $('#sName').textContent=sc.name;$('#bSnd').textContent='Som: '+(AU.on?'on':'off');
+ document.body.style.overflow='hidden';startBox(sc);resize();
+ if(!SIM.raf){SIM.last=performance.now();SIM.raf=requestAnimationFrame(loop);}
+}
+function startFlight(){AU.init();if(COARSE)goFS();SIM.started=true;$('#ovStart').hidden=true;clearInputs();try{navigator.wakeLock&&navigator.wakeLock.request('screen').catch(()=>{})}catch(e){}}
+function closeSim(){exitFS();SIM.open=false;$('#sim').hidden=true;if(SIM.raf)cancelAnimationFrame(SIM.raf);SIM.raf=0;if(AU.ctx)AU.update(0,0,0,false);document.body.style.overflow='';renderMenu();}
+function togglePause(){if(!SIM.started||!S||S.done)return;SIM.paused=!SIM.paused;$('#ovPause').hidden=!SIM.paused;clearInputs();}
+$('#pCont').addEventListener('click',togglePause);$('#pRestart').addEventListener('click',()=>openSim(S.sc));$('#pExit').addEventListener('click',closeSim);
+$('#bPause').addEventListener('click',e=>{e.currentTarget.blur();togglePause();});
+$('#bSnd').addEventListener('click',e=>{AU.on=!AU.on;store.set('snd',AU.on);e.currentTarget.textContent='Som: '+(AU.on?'on':'off');e.currentTarget.blur();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&SIM.started&&S&&!S.done&&!SIM.paused)togglePause();});
+
+function goFS(){const el=document.documentElement;const rq=el.requestFullscreen||el.webkitRequestFullscreen;if(!rq||document.fullscreenElement)return;try{const p=rq.call(el,{navigationUI:'hide'});if(p&&p.then)p.then(()=>{try{screen.orientation&&screen.orientation.lock&&screen.orientation.lock('landscape').catch(()=>{})}catch(e){}}).catch(()=>{});}catch(e){}}
+function exitFS(){try{if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});screen.orientation&&screen.orientation.unlock&&screen.orientation.unlock();}catch(e){}}
+$('#bFs').addEventListener('click',e=>{e.currentTarget.blur();document.fullscreenElement?exitFS():goFS();});
+document.addEventListener('fullscreenchange',()=>{$('#bFs').textContent=document.fullscreenElement?'Sair da tela cheia':'Tela cheia';setTimeout(resize,150);});
+if(!(document.documentElement.requestFullscreen||document.documentElement.webkitRequestFullscreen))$('#bFs').hidden=true;
+/* instalação (PWA) */
+let deferredPrompt=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').hidden=false;});
+$('#installBtn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();try{await deferredPrompt.userChoice}catch(e){}deferredPrompt=null;$('#installBtn').hidden=true;});
+addEventListener('appinstalled',()=>{$('#installBtn').hidden=true;});
+const standalone=matchMedia('(display-mode: standalone)').matches||matchMedia('(display-mode: fullscreen)').matches||navigator.standalone;
+if(/iphone|ipad|ipod/i.test(navigator.userAgent)&&!standalone)$('#iosHint').hidden=false;
+if('serviceWorker' in navigator&&location.protocol!=='file:')addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+setMode(MODE);renderMenu();renderProc();
+})();
+</script>
+</body>
+</html>
