@@ -1,4 +1,4 @@
-js
+
 const VERSAO = 'siv-v2';
 const ESSENCIAIS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
