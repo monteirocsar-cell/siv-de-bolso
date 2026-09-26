@@ -7,8 +7,8 @@
 <meta name="description" content="Simulador de incidentes de parapente para treinar reações: fechamentos, estol, parachutal, negativa, espiral, turbulência, rotor, vento forte e reserva.">
 <meta name="theme-color" content="#0C1217">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -159,6 +159,20 @@ header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:spac
 .mgrid b{font-family:var(--fd);font-size:22px;font-variant-numeric:tabular-nums}
 .deb li.g{color:#9BE3B8}.deb li.e{color:#FFB1AC}
 .chart{width:100%;height:auto;display:block;margin:6px 0}
+.anchor{font-family:var(--fd);font-weight:700;font-size:20px;letter-spacing:.02em;color:var(--accent);line-height:1.2;margin:2px 0 4px}
+.anchor small{display:block;font-family:var(--fd);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600}
+#hint .anchor{font-size:15px;margin:0 0 6px}
+.reflect{margin-top:14px;padding:12px;border-radius:10px;background:#101820;border:1px solid var(--line)}
+.reflect p{margin:0 0 8px}
+.reflect .opts{flex-direction:row;flex-wrap:wrap}
+.reflect .opt{flex:1 1 180px}
+.week{display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;margin:18px 0 0;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.week .dots{display:flex;gap:6px}.week .dots i{width:14px;height:14px;border-radius:50%;background:var(--panel2);border:1px solid var(--line)}
+.week .dots i.on{background:var(--ok);border-color:var(--ok)}
+.week b{font-family:var(--fd);font-size:18px;letter-spacing:.04em}
+.week span{color:var(--muted);font-size:14px}
+.why{margin-top:14px}
+.why .card{gap:6px}
 @media (prefers-reduced-motion:reduce){.zone.pl .gauge{animation:none}#banner{transition:none}}
 @media (max-height:460px){.inst .v{font-size:19px}.inst{padding:4px 10px}#hint{top:calc(80px + env(safe-area-inset-top,0px));font-size:12px}.pad{padding:4px 7px;font-size:11.5px}}
 </style>
@@ -225,6 +239,11 @@ header.top{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:spac
 
   <section id="t-proc" hidden>
     <p class="modeDesc">Referência rápida usada pelo simulador. Leia antes de voar e revise depois de cada debriefing.</p>
+    <div class="grid why">
+      <div class="card"><h3>Por que treinar no simulador?</h3><p>No susto, a parte do cérebro que raciocina falha primeiro, e sobra o que já está automatizado. Pilotos profissionais que recuperavam um estol esperado em 1,3 s levaram de 8 a 11 s quando ele veio de surpresa. O simulador treina reconhecer o incidente e a ordem das ações; o SIV e o voo treinam sentir e dosar a vela.</p></div>
+      <div class="card"><h3>Frase-âncora</h3><p>Cada incidente tem uma frase curta. Diga-a assim que perceber o problema: ela substitui o “vou cair” ou o “e agora?” por um plano — técnica de autoinstrução da Terapia Cognitivo-Comportamental.</p></div>
+      <div class="card"><h3>Como treinar</h3><p>Três sessões de 10 minutos por semana, durante algumas semanas. Primeiro no modo guiado; depois no modo avaliação, com surpresa. A memória de procedimentos se perde rápido sem prática.</p></div>
+    </div>
     <div class="grid proc" id="procList" style="margin-top:14px"></div>
   </section>
 
@@ -334,6 +353,13 @@ const PROC={
   e:['Hesitar com pouca altura','Não recolher a vela principal','Tocar o solo com as pernas abertas']}
 };
 
+const FRASE={"asym": "Direção primeiro. Depois reabrir.", "front": "Mãos leves e simétricas. Segura a abatida.", "cravat": "Direção, estabilo, bombada. Sem controle? Reserva.", "stall": "Soltar junto. Segurar a abatida.", "para": "Mãos em cima. Acelerador. Nunca freio.", "spin": "Solta o freio, para o giro.", "spiral": "Peso para fora. Sair devagar.", "turb": "Vela atrás, mãos em cima. Vela à frente, freio.", "rotor": "Afastar do relevo. Mãos ativas.", "wind": "Aproar, acelerar, orelhas, descer.", "reserve": "Olhar, agarrar, puxar, lançar."};
+const ISSUE_KEY={asym:'asym',front:'front',cravat:'cravat',full:'stall',para:'para',spin:'spin',spiral:'spiral',turb:'turb',rotor:'rotor',wind:'wind',surge:'front'};
+const REFLECT=[
+ {k:'proc',t:'O procedimento (o que fazer)',fb:'<b class="good">Ótimo sinal.</b> Seu primeiro pensamento já foi um plano. É isso que o treino busca: que, no susto, o pensamento automático seja a ação certa. Mantenha a rotina para que continue assim.'},
+ {k:'branco',t:'Deu branco / “e agora?”',fb:'<b class="mid">Normal no começo.</b> O susto tira o raciocínio do ar por alguns segundos. Antes do próximo voo, repita {F} três vezes. No voo, diga a frase assim que perceber o incidente: ela ocupa o lugar do “e agora?”.'},
+ {k:'medo',t:'Medo de cair / pânico',fb:'<b class="mid">Pensamento catastrófico.</b> Ele gera tensão e congelamento, e piora a reação. Troque “vou cair” por {F} — um plano curto que dá ao cérebro o que fazer. Treine primeiro no modo guiado até a frase sair sozinha. Se o medo atrapalha seus voos reais, converse com seu instrutor ou com um psicólogo do esporte.'},
+ {k:'auto',t:'Não pensei, só agi',fb:'<b class="good">Resposta automática.</b> Confira na lista acima se a ação automática foi a correta. Se foi, o procedimento está consolidado; se não, volte ao modo guiado para “reescrever” o automatismo com {F}.'}];
 /* ================= CENÁRIOS ================= */
 const CATS=['Fechamentos','Estol e parachutal','Espiral','Reserva','Ambiente','Avaliação'];
 const SCN=[
@@ -387,11 +413,15 @@ function renderMenu(){
    const tl=s.turb>=.6?'turbulento':s.turb>=.3?'térmico':s.turb>0?'ar calmo':'sem turbulência';
    html+=`<div class="card"><h3>${s.name}</h3><p>${s.brief}</p><div class="row"><div class="chips"><span class="chip">${s.alt} m</span><span class="chip">${tl}</span>${best!=null?`<span class="chip ${best>=55?'best':'low'}">melhor ${best}</span>`:''}</div><button class="btn" data-fly="${s.id}">Voar</button></div></div>`;}
   html+='</div></div>';}
+ const now=Date.now(),wk=H.filter(h=>h.id!=='quiz'&&now-h.d<7*864e5),last=H.filter(h=>h.id!=='quiz').slice(-1)[0];
+ const days=last?Math.floor((now-last.d)/864e5):null,n=Math.min(3,wk.length);
+ const msg=!last?'Comece hoje: 10 minutos, um cenário.':n>=3?'Meta da semana cumprida. Mantenha o ritmo.':days>=7?`Último treino há ${days} dias — o procedimento esquece rápido sem prática.`:`Faltam ${3-n} ${3-n===1?'sessão':'sessões'} para a meta da semana.`;
+ html=`<div class="week"><b>Rotina da semana</b><div class="dots">${[0,1,2].map(i=>`<i class="${i<n?'on':''}"></i>`).join('')}</div><span>${wk.length} ${wk.length===1?'treino':'treinos'} nos últimos 7 dias · meta: 3 sessões curtas. ${msg}</span></div>`+html;
  $('#scnList').innerHTML=html;
  $$('[data-fly]').forEach(b=>b.addEventListener('click',()=>openSim(SCN.find(s=>s.id===b.dataset.fly))));
 }
 function renderProc(){
- $('#procList').innerHTML=Object.values(PROC).map(p=>`<div class="card"><h3>${p.t}</h3><h4>Sinais</h4><ul>${p.s.map(x=>`<li>${x}</li>`).join('')}</ul><h4 class="a">O que fazer</h4><ul>${p.a.map(x=>`<li>${x}</li>`).join('')}</ul><h4 class="e">Erros comuns</h4><ul>${p.e.map(x=>`<li>${x}</li>`).join('')}</ul>${p.x?`<p style="font-size:13px;color:var(--muted)">${p.x}</p>`:''}</div>`).join('');
+ $('#procList').innerHTML=Object.entries(PROC).map(([k,p])=>(p.f=FRASE[k],p)).map(p=>`<div class="card"><h3>${p.t}</h3>${p.f?`<div class="anchor"><small>Frase-âncora</small>“${p.f}”</div>`:''}<h4>Sinais</h4><ul>${p.s.map(x=>`<li>${x}</li>`).join('')}</ul><h4 class="a">O que fazer</h4><ul>${p.a.map(x=>`<li>${x}</li>`).join('')}</ul><h4 class="e">Erros comuns</h4><ul>${p.e.map(x=>`<li>${x}</li>`).join('')}</ul>${p.x?`<p style="font-size:13px;color:var(--muted)">${p.x}</p>`:''}</div>`).join('');
 }
 let delArm=false;
 function renderHist(){
@@ -704,7 +734,7 @@ function computeScore(o){
  return clamp(Math.round(n),0,100);
 }
 function finish(o,msg){const s=S;if(s.done)return;s.done=true;s.outcome=o;s.msg=msg;log(msg,o==='fail'?'err':'ok');s.score=computeScore(o);
- const H=hist();H.push({id:s.sc.id,name:s.sc.name,score:s.score,o,mode:s.mode,d:Date.now()});store.set('hist',H.slice(-80));
+ const H=hist();s.histD=Date.now();H.push({id:s.sc.id,name:s.sc.name,score:s.score,o,mode:s.mode,d:s.histD});store.set('hist',H.slice(-80));
  if(o==='fail'){s.shake=1.5;AU.bang(1.2);}
  setTimeout(showDebrief,1000);}
 
@@ -741,9 +771,12 @@ function showDebrief(){
  ${s.good.length?`<h4>O que você fez bem</h4><ul>${s.good.map(g=>`<li class="g">${esc(g)}</li>`).join('')}</ul>`:''}
  ${s.err.length?`<h4>O que corrigir</h4><ul>${s.err.map(e=>`<li class="e">${esc(e.m)} <span style="opacity:.6">(−${e.p})</span></li>`).join('')}</ul>`:''}
  ${s.inc&&s.react==null&&s.inc.type!=='collision'?'<p class="badc" style="font-size:14px">Não houve a reação correta ao incidente (−25).</p>':''}
+ ${pk&&FRASE[pk]?`<h4>Frase-âncora para memorizar</h4><div class="anchor">“${FRASE[pk]}”</div>`:''}
+ <div class="reflect" id="reflect"><p><b>O que você pensou no primeiro segundo?</b></p><div class="opts">${REFLECT.map((r,i)=>`<button class="opt" data-r="${i}">${r.t}</button>`).join('')}</div><div id="rfb"></div></div>
  ${P?`<h4>Procedimento de referência — ${P.t}</h4><ul>${P.a.map(x=>`<li>${x}</li>`).join('')}</ul>`:''}
  <div class="acts"><button class="btn" id="dAgain">Voar de novo</button><button class="btn ghost" id="dMenu">Menu</button></div>`;
  $('#ovDeb').hidden=false;$('#hint').hidden=true;
+ $$('#reflect .opt').forEach(b=>b.addEventListener('click',()=>{const r=REFLECT[+b.dataset.r];$$('#reflect .opt').forEach(x=>{x.disabled=true;x.classList.toggle('right',x===b)});$('#rfb').innerHTML=`<div class="expl">${r.fb.replace('{F}',pk&&FRASE[pk]?'“'+FRASE[pk]+'”':'a frase-âncora')}</div>`;const H=hist();const e=H.find(x=>x.d===s.histD);if(e){e.th=r.k;store.set('hist',H);}}));
  $('#dAgain').addEventListener('click',()=>openSim(sc));$('#dMenu').addEventListener('click',closeSim);
 }
 
@@ -784,7 +817,7 @@ function hintData(){
 let lastHint='';
 function renderHint(){const el=$('#hint');if(S.mode!=='guided'||!SIM.started||S.done){el.hidden=true;return}
  const d=hintData();el.hidden=false;
- const html=`<h5>${d.t}</h5><ol>${d.st.map((x,i)=>`<li class="${d.n<0?'':i<d.n?'done':i===d.n?'now':''}">${x}</li>`).join('')}</ol>`;
+ const fk=(S.res.step||S.collided||(S.alt<200&&S.uncT>1.5))?'reserve':ISSUE_KEY[activeIssue()];const html=`<h5>${d.t}</h5>${fk&&FRASE[fk]?`<div class="anchor">“${FRASE[fk]}”</div>`:''}<ol>${d.st.map((x,i)=>`<li class="${d.n<0?'':i<d.n?'done':i===d.n?'now':''}">${x}</li>`).join('')}</ol>`;
  if(html!==lastHint){el.innerHTML=html;el.className=d.alarm?'alarm':'';lastHint=html;}}
 
 /* ================= RENDER ================= */
@@ -947,7 +980,7 @@ function startBox(sc){
  const goal={recover:'Recuperar a vela e estabilizar: 4 s de voo reto com a vela aberta.',survive:'Agir rápido e chegar ao chão em segurança.',time:'Aguentar 60 s de turbulência com o mínimo de fechamentos.',rotor:'Afastar-se mais de 520 m do morro sem colidir.',wind:'Chegar ao chão antes de recuar 260 m.'}[sc.goal];
  const keys=COARSE?`<span>Faixas laterais</span><span>Freios — arraste o polegar para baixo</span><span>Mãos em cima</span><span>Botão central (segure)</span><span>Peso</span><span>◀ Peso / Peso ▶ (segure)</span><span>Bombada</span><span>Freio fundo e solta em até 2 s</span>`
   :`<kbd>← →</kbd><span>Freio esquerdo / direito (segure = mais fundo)</span><kbd>↓</kbd><span>Os dois freios</span><kbd>↑</kbd><span>Mãos totalmente em cima</span><kbd>Z C</kbd><span>Peso esquerda / direita</span><kbd>Espaço · O</kbd><span>Acelerador · orelhas</span><kbd>Q E</kbd><span>Estabilo esquerdo / direito</span><kbd>R R · G · F</kbd><span>Reserva · recolher vela · PLF</span>`;
- $('#startBox').innerHTML=`<div class="eyebrow">${S.mode==='guided'?'Modo guiado':'Modo avaliação'} · ${sc.alt} m</div><h2>${sc.name}</h2><p>${sc.brief}</p><h4>Objetivo</h4><p>${goal}</p>${S.mode==='eval'?'<p style="color:var(--warn)">Sem avisos nem dicas. O incidente vem num momento aleatório.</p>':''}<h4>Comandos</h4><div class="keys">${keys}</div><p class="rot" style="margin-top:10px">Gire o celular para a horizontal e use fone de ouvido.</p><div class="acts"><button class="btn" id="goBtn">Iniciar voo</button><button class="btn ghost" id="backBtn">Voltar</button></div>`;
+ $('#startBox').innerHTML=`<div class="eyebrow">${S.mode==='guided'?'Modo guiado':'Modo avaliação'} · ${sc.alt} m</div><h2>${sc.name}</h2><p>${sc.brief}</p><h4>Objetivo</h4><p>${goal}</p>${S.mode==='guided'&&FRASE[sc.proc]?`<h4>Frase-âncora</h4><div class="anchor">“${FRASE[sc.proc]}”</div><p style="font-size:13px;color:var(--muted)">Diga a frase em voz baixa assim que perceber o incidente. Ela substitui o “e agora?” por um plano.</p>`:''}${S.mode==='eval'?'<p style="color:var(--warn)">Sem avisos nem dicas. O incidente vem num momento aleatório.</p>':''}<h4>Comandos</h4><div class="keys">${keys}</div><p class="rot" style="margin-top:10px">Gire o celular para a horizontal e use fone de ouvido.</p><div class="acts"><button class="btn" id="goBtn">Iniciar voo</button><button class="btn ghost" id="backBtn">Voltar</button></div>`;
  $('#goBtn').addEventListener('click',startFlight);$('#backBtn').addEventListener('click',closeSim);
 }
 function clearInputs(){for(const k in K)K[k]=false;for(const k in BTN)BTN[k]=false;TOUCH[0]=TOUCH[1]=null;PUMP.forEach(p=>p.deep=false);$$('.pad').forEach(b=>b.classList.remove('on'));}
