@@ -1,4 +1,4 @@
-const VERSAO = 'siv-v3';
+const VERSAO = 'siv-v3'; 
 const ESSENCIAIS = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', e => {
